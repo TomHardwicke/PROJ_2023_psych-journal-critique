@@ -1,0 +1,21 @@
+Instructions for obtaining online databases
+
+File: wos-core-SSCI.csv
+Instructions: The master list of all journals included in the Web of Science Social Sciences Citation Index was obtained from this link:
+https://mjl.clarivate.com/collection-list-downloads
+
+Institutional access and login via ORCID was required. The file was obtained on January 18th, 2023. The website stated that the list was last updated on January 18th, 2023.
+
+
+
+---------
+
+
+Files: journals_by_IF_psychology_[SUBFIELD].csv (in journals_by_IF folder)
+The lists of Web of Science Social Sciences Citation Index journals ranked by 2019 Journal Impact Factor for each WOS subject category related to psychology were obtained using Journal Citation Reports (https://perma.cc/T2CT-3QE6).
+
+https://jcr.clarivate.com/jcr/home
+
+
+Using the filter panel on the left hand side, we chose the subject categories related to psychology, ensured the JCR year was 2019 and the edition was 'SSCI'. To get the lists for each subject category, we clicked on the hyperlinked number of journals for that category, then clicked the download symbol (a downward arrow pointing to an open box) to get a csv file.
+
