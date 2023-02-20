@@ -4,24 +4,6 @@ library(tidyverse)
 library(here)
 library(tidylog)
 
-# this code loads the master list of journals included in the Web of Science Social Sciences Citation Index and saves a list of only the psychology journals
-
-wos_journals <- read_csv(here('data','primary','prepareSample','d-wos-core-SSCI.csv')) # load list of all WOS journals
-
-wos_psych <- wos_journals %>% 
-  filter(str_detect(`Web of Science Categories`, 'Psychology')) # filter to obtain only WOS journals with at least one "psychology" classification
-
-# some journals have multiple disciplinary classifications. Here we select only the first psychology classification:
-
-wos_psych <- wos_psych %>%
-  rowwise() %>%
-  mutate(WOS_first_psych_category = str_extract(`Web of Science Categories`, "Psychology(\\W+\\w+){0,1}"))
-
-table(wos_psych$WOS_first_psych_category)
-
-write_csv(wos_psych,here('data','primary','prepareSample','d-wos-psych.csv')) # save file
-
-
 # this code compiles all of the separate journal by impact factor files (one for each subfield) into one file
 
 # load in journals for each subject area ranked by impact factor (top 10)
@@ -77,20 +59,10 @@ nrow(journals_by_IF) == original_size-number_duplicated_before_removal
 sum(duplicated(journals_by_IF$journal)) == 0
 
 # for each field reassign ranks within groups (to make up for removed duplicates) and select the top ten by IF rank journals in each group
-tmp<-journals_by_IF %>%
+journals_by_IF <-journals_by_IF %>%
   arrange(field, desc(JIF_2021)) %>%
   group_by(field) %>%
   mutate(IF_rank = row_number()) %>% # reassign ranks within groups
   slice_head(n=10) # select top 10 ranked journals in each group
 
-write_csv(tmp, here('data','primary','prepareSample','journals.csv'))
-
-  distinct(journal)
-  
-
-  df%>%group_by(Grp)%>%filter(duplicated(Grp)|n()==1)
-  
-  
-tmp2 <- tmp %>% ungroup() %>% group_by(journal) %>% filter(n() > 1) %>% arrange(journal)
-
-write_csv(journals_by_IF, here('data','primary','prepareSamples','journals_by_IF.csv'))
+write_csv(journals_by_IF, here('data','primary','prepareSample','journals_sample.csv'))
