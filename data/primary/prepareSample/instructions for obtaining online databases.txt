@@ -1,6 +1,6 @@
 Instructions for obtaining online databases
 
-File: wos-core-SSCI.csv
+File: d-wos-core-SSCI.csv
 Instructions: The master list of all journals included in the Web of Science Social Sciences Citation Index was obtained from this link:
 https://mjl.clarivate.com/collection-list-downloads
 

@@ -2,45 +2,95 @@
 
 library(tidyverse)
 library(here)
+library(tidylog)
 
 # this code loads the master list of journals included in the Web of Science Social Sciences Citation Index and saves a list of only the psychology journals
 
-wos_journals <- read_csv(here('data','primary','prepareSamples','wos-core_SSCI.csv')) # load list of all WOS journals
+wos_journals <- read_csv(here('data','primary','prepareSample','d-wos-core-SSCI.csv')) # load list of all WOS journals
 
 wos_psych <- wos_journals %>% 
-  filter(str_detect(`Web of Science Categories`, 'Psychology')) # filter to obtain only WOS journals classified as psychology
+  filter(str_detect(`Web of Science Categories`, 'Psychology')) # filter to obtain only WOS journals with at least one "psychology" classification
 
-write_csv(wos_psych,here('data','primary','prepareSamples','wos-psych-d.csv')) # save file
+# some journals have multiple disciplinary classifications. Here we select only the first psychology classification:
+
+wos_psych <- wos_psych %>%
+  rowwise() %>%
+  mutate(WOS_first_psych_category = str_extract(`Web of Science Categories`, "Psychology(\\W+\\w+){0,1}"))
+
+table(wos_psych$WOS_first_psych_category)
+
+write_csv(wos_psych,here('data','primary','prepareSample','d-wos-psych.csv')) # save file
 
 
 # this code compiles all of the separate journal by impact factor files (one for each subfield) into one file
 
 # load in journals for each subject area ranked by impact factor (top 10)
 journals_by_IF <- rbind(
-  read_csv(here('data','primary','prepareSamples','journals_by_IF','journals_by_IF_psychology_experimental.csv'), skip = 1) %>%
+  read_csv(here('data','primary','prepareSample','d-jcr-experimental-psych.csv'), skip = 1) %>%
     mutate(field = 'experimental'),
-  read_csv(here('data','primary','prepareSamples','journals_by_IF','journals_by_IF_psychology_multidisciplinary.csv'), skip = 1) %>%
+  read_csv(here('data','primary','prepareSample','d-jcr-multidisciplinary-psych.csv'), skip = 1) %>%
     mutate(field = 'multidisciplinary'),
-  read_csv(here('data','primary','prepareSamples','journals_by_IF','journals_by_IF_psychology_clinical.csv'), skip = 1) %>%
+  read_csv(here('data','primary','prepareSample','d-jcr-clinical-psych.csv'), skip = 1) %>%
     mutate(field = 'clinical'),
-  read_csv(here('data','primary','prepareSamples','journals_by_IF','journals_by_IF_psychology_developmental.csv'), skip = 1) %>%
+  read_csv(here('data','primary','prepareSample','d-jcr-developmental-psych.csv'), skip = 1) %>%
     mutate(field = 'developmental'),
-  read_csv(here('data','primary','prepareSamples','journals_by_IF','journals_by_IF_psychology_social.csv'), skip = 1) %>%
+  read_csv(here('data','primary','prepareSample','d-jcr-social-psych.csv'), skip = 1) %>%
     mutate(field = 'social'),
-  read_csv(here('data','primary','prepareSamples','journals_by_IF','journals_by_IF_psychology_psychoanalysis.csv'), skip = 1) %>%
+  read_csv(here('data','primary','prepareSample','d-jcr-psychoanalysis-psych.csv'), skip = 1) %>%
     mutate(field = 'psychoanalysis'),
-  read_csv(here('data','primary','prepareSamples','journals_by_IF','journals_by_IF_psychology_applied.csv'), skip = 1) %>%
+  read_csv(here('data','primary','prepareSample','d-jcr-applied-psych.csv'), skip = 1) %>%
     mutate(field = 'applied'),
-  read_csv(here('data','primary','prepareSamples','journals_by_IF','journals_by_IF_psychology_mathematical.csv'), skip = 1) %>%
+  read_csv(here('data','primary','prepareSample','d-jcr-mathematical-psych.csv'), skip = 1) %>%
     mutate(field = 'mathematical'),
-  read_csv(here('data','primary','prepareSamples','journals_by_IF','journals_by_IF_psychology_educational.csv'), skip = 1) %>%
+  read_csv(here('data','primary','prepareSample','d-jcr-educational-psych.csv'), skip = 1) %>%
     mutate(field = 'educational'),
-  read_csv(here('data','primary','prepareSamples','journals_by_IF','journals_by_IF_psychology_biological.csv'), skip = 1) %>%
+  read_csv(here('data','primary','prepareSample','d-jcr-biological-psych.csv'), skip = 1) %>%
     mutate(field = 'biological')
 )
 
-# remove some notes that are included in the data files
-journals_by_IF %>% filter(!str_detect(Rank,'Copyright.'),
-                          !str_detect(Rank,'By exporting.'))
+# some data frame adjustments
+journals_by_IF <- journals_by_IF %>%
+  filter(!str_detect(`Journal name`,'Copyright')) %>% # remove some notes that are included in the data files
+  filter(!str_detect(`Journal name`,'By exporting')) %>% # remove some notes that are included in the data files
+  filter(`2021 JIF` != 'N/A') %>% # remove journals that don't have a journal impact factor
+  mutate(JIF_2021 = as.numeric(`2021 JIF`), # make JIF column numeric
+         journal = str_to_title(`Journal name`)) %>% # make journal names title case
+  select(journal, JIF_2021, ISSN, eISSN, field)
+
+# check for duplicates (journals appearing in multiple fields)
+original_size <- nrow(journals_by_IF)
+number_duplicated_before_removal <- sum(duplicated(journals_by_IF$journal))
+
+# for each field, assign ranks by impact factor. Then identify and remove journals that appear in multiple groups, preserving the instance with a higher rank
+journals_by_IF <- journals_by_IF %>% 
+  group_by(field) %>%
+  arrange(desc(JIF_2021)) %>%
+  mutate(IF_rank = row_number()) %>% # assign ranks within groups
+  ungroup() %>%
+  group_by(journal) %>%
+  arrange(journal, IF_rank) %>% # rows are ordered by journal name and rank, so higher ranked duplicates appear first
+  distinct(journal, .keep_all = T) %>% # this removes duplicates, preserving the first instance (row), which as above is the highest ranked of the duplicates
+  ungroup()
+
+# two tests to see if duplicates have in fact been removed (both tests should be TRUE)
+nrow(journals_by_IF) == original_size-number_duplicated_before_removal
+sum(duplicated(journals_by_IF$journal)) == 0
+
+# for each field reassign ranks within groups (to make up for removed duplicates) and select the top ten by IF rank journals in each group
+tmp<-journals_by_IF %>%
+  arrange(field, desc(JIF_2021)) %>%
+  group_by(field) %>%
+  mutate(IF_rank = row_number()) %>% # reassign ranks within groups
+  slice_head(n=10) # select top 10 ranked journals in each group
+
+write_csv(tmp, here('data','primary','prepareSample','journals.csv'))
+
+  distinct(journal)
+  
+
+  df%>%group_by(Grp)%>%filter(duplicated(Grp)|n()==1)
+  
+  
+tmp2 <- tmp %>% ungroup() %>% group_by(journal) %>% filter(n() > 1) %>% arrange(journal)
 
 write_csv(journals_by_IF, here('data','primary','prepareSamples','journals_by_IF.csv'))
