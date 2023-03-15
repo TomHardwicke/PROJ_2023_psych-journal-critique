@@ -4,6 +4,36 @@ library(tidyverse)
 library(here)
 library(tidylog)
 
+# this code loads the master list of journals included in the Web of Science Core Collection and saves a list of only the psychology journals
+
+wos_esci <- read_csv(here('data','primary','prepareSample','wos-core_ESCI 2023-February-22.csv')) # load list of all WOS journals
+wos_scie <- read_csv(here('data','primary','prepareSample','wos-core_SCIE 2023-February-22.csv')) # load list of all WOS journals
+wos_ssci <- read_csv(here('data','primary','prepareSample','wos-core_SSCI 2023-February-22.csv')) # load list of all WOS journals
+wos_ahci <- read_csv(here('data','primary','prepareSample','wos-core_AHCI 2023-February-22.csv')) # load list of all WOS journals
+
+wos_psych <- bind_rows(wos_esci,wos_scie,wos_ssci,wos_ahci) %>%
+  filter(str_detect(`Web of Science Categories`, 'Psychology')) %>% # filter to obtain only WOS journals with at least one "psychology" classification
+  distinct(`Journal title`, .keep_all = T)
+
+wos_psych <- wos_psych %>% filter(str_detect(Languages, 'English')) # filter to obtain only journals with English language articles
+
+wos_psych_jcr <- read_csv(here('data','primary','prepareSample','wos-jcr-psych-2023.csv'), skip = 2) # load list of athe top 600 ranked psychology journals in JCR
+
+# some journals have multiple disciplinary classifications. Here we select only the first psychology classification:
+
+wos_psych <- wos_psych %>%
+  rowwise() %>%
+  mutate(WOS_first_psych_category = str_extract(`Web of Science Categories`, "Psychology(\\W+\\w+){0,1}"))
+
+table(wos_psych$WOS_first_psych_category)
+
+write_csv(wos_psych,here('data','primary','prepareSample','d-wos-psych.csv')) # save file
+
+
+
+
+
+
 # this code compiles all of the separate journal by impact factor files (one for each subfield) into one file
 
 # load in journals for each subject area ranked by impact factor (top 10)
