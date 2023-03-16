@@ -90,7 +90,7 @@ precisionCurve <- function(expectedProportion,sampleSize,confidenceLevel=.95,pop
 
 # Run the code below to compute a margin of error for given expected proportion and target sample size
 moe_object1 <- marginOfError(
-  expectedProportion = .17, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
+  expectedProportion = .5, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
   sampleSize = 100, # Specify the target sample size
   populationSize = Inf, # If population size is known, we can apply a finite population correction, otherwise use Inf
   confidenceLevel = .95, # specify the level of the confidence interval
@@ -98,7 +98,7 @@ moe_object1 <- marginOfError(
 
 # Lets get a second moe for a different target sample size (so we can display both on a precision curve)
 moe_object2 <- marginOfError(
-  expectedProportion = .17, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
+  expectedProportion = .5, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
   sampleSize = 50, # Specify the target sample size
   populationSize = Inf, # If population size is known, we can apply a finite population correction, otherwise use Inf
   confidenceLevel = .95, # specify the level of the confidence interval
@@ -107,7 +107,7 @@ moe_object2 <- marginOfError(
 # Now plot a precision curve showing precision (margin of error) as a function of sample size.
 # We'll annotate the plot with the parameters above
 
-precisionCurve(expectedProportion =.17, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
+precisionCurve(expectedProportion =.5, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
                sampleSize = 100, # Specify the target sample size
                populationSize = Inf, # If population size is known, we can apply a finite population correction, otherwise use Inf
                confidenceLevel = .95, # specify the level of the confidence interval
