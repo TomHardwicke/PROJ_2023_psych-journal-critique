@@ -6,6 +6,10 @@ library(here)
 
 wos_psych <- read_csv(here('data','primary','prepareSample','02 - modified','wos-psych.csv')) # load list of all WOS psychology journals
 
+wos_psych <- wos_psych %>% filter(str_detect(Languages, 'English')) # filter to obtain only journals with English language articles
+
+
+
 set.seed(42) # set the seed for reproducibility of random sampling
 random_sample_original <- slice_sample(wos_psych, n = 100) # randomly sample 100 rows
 

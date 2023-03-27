@@ -15,8 +15,6 @@ wos_psych <- bind_rows(wos_esci,wos_scie,wos_ssci,wos_ahci) %>%
   filter(str_detect(`Web of Science Categories`, 'Psychology')) %>% # filter to obtain only WOS journals with at least one "psychology" classification
   distinct(`Journal title`, .keep_all = T)
 
-wos_psych <- wos_psych %>% filter(str_detect(Languages, 'English')) # filter to obtain only journals with English language articles
-
 # some journals have multiple disciplinary classifications. Here we select only the first psychology classification:
 
 wos_psych <- wos_psych %>%
