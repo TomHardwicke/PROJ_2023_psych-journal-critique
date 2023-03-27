@@ -1,16 +1,13 @@
-# This script obtains a random sample of 40 psychology journals from amongst all psychology journals indexed by Web of Science (WOS).
+# This script obtains a random sample of 100 psychology journals from amongst all psychology journals included in the Web of Science Core Collection.
 
 library(tidyverse)
 library(here)
 `%notin%` <- Negate(`%in%`)
 
-wos_psych <- read_csv(here('data','primary','prepareSamples','wos-psych-d.csv')) # load list of all WOS psychology journals
-
-wos_psych_eng <- wos_psych %>% 
-  filter(Languages == 'English') # filter to obtain only WOS journals classified as English language
+wos_psych <- read_csv(here('data','primary','prepareSample','02 - modified','wos-psych.csv')) # load list of all WOS psychology journals
 
 set.seed(42) # set the seed for reproducibility of random sampling
-random_sample_original <- slice_sample(wos_psych_eng, n = 40) # randomly sample 40 rows
+random_sample_original <- slice_sample(wos_psych, n = 100) # randomly sample 100 rows
 
 # remove any non-empirical journals identified during screening
 random_sample_adjusted <- random_sample_original %>%

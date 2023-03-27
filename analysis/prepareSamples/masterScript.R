@@ -3,8 +3,8 @@
 library(tidyverse)
 library(here)
 
-# This script loads the master list of journals included in the Web of Science Social Sciences Citation Index and saves a list of only the psychology journals
-# The script also compiles all of the separate journal by impact factor files (one for each subfield) into one file
+# This script loads and mungs the master list of journals included in the Web of Science Core Collection and saves a list of only the psychology journals
+# It also loads and mungs the list of the top 600 (ranked by Impact Factor) psychology journals in Journal Citation Reports
 source(here('analysis','prepareSamples','organizePreStudyFiles.R'))
 
 # This script obtains a random sample of 40 psychology journals from amongst all psychology journals indexed by Web of Science (WOS)
