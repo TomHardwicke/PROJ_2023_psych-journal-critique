@@ -4,7 +4,7 @@ library(tidyverse)
 library(here)
 `%notin%` <- Negate(`%in%`)
 
-wos_psych <- read_csv(here('data','primary','prepareSample','journals','02 - modified','wos-psych.csv')) # load list of all WOS psychology journals
+wos_psych <- read_csv(here('data','prepareSample','journals','02 - modified','wos-psych.csv')) # load list of all WOS psychology journals
 
 wos_psych <- wos_psych %>% filter(str_detect(Languages, 'English')) # filter to obtain only journals with English language articles
 
