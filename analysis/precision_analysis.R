@@ -86,30 +86,30 @@ precisionCurve <- function(expectedProportion,sampleSize,confidenceLevel=.95,pop
   return(plot)
 }
 
-# Run a precision analysis  ---------------------------------
+# Run a precision analysis for Research Aim (1b)  ---------------------------------
 
 # Run the code below to compute a margin of error for given expected proportion and target sample size
 moe_object1 <- marginOfError(
-  expectedProportion = .5, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
+  expectedProportion = .67, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
   sampleSize = 100, # Specify the target sample size
-  populationSize = Inf, # If population size is known, we can apply a finite population correction, otherwise use Inf
+  populationSize = 750, # If population size is known, we can apply a finite population correction, otherwise use Inf
   confidenceLevel = .95, # specify the level of the confidence interval
   type = 'wilson')
 
 # Lets get a second moe for a different target sample size (so we can display both on a precision curve)
 moe_object2 <- marginOfError(
-  expectedProportion = .5, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
+  expectedProportion = .67, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
   sampleSize = 50, # Specify the target sample size
-  populationSize = Inf, # If population size is known, we can apply a finite population correction, otherwise use Inf
+  populationSize = 750, # If population size is known, we can apply a finite population correction, otherwise use Inf
   confidenceLevel = .95, # specify the level of the confidence interval
   type = 'wilson')
 
 # Now plot a precision curve showing precision (margin of error) as a function of sample size.
 # We'll annotate the plot with the parameters above
 
-precisionCurve(expectedProportion =.5, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
+precisionCurve(expectedProportion =.67, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
                sampleSize = 100, # Specify the target sample size
-               populationSize = Inf, # If population size is known, we can apply a finite population correction, otherwise use Inf
+               populationSize = 750, # If population size is known, we can apply a finite population correction, otherwise use Inf
                confidenceLevel = .95, # specify the level of the confidence interval
                type = 'wilson' # specify the type of confidence interval (wald or wilson)
 ) +
@@ -123,6 +123,45 @@ precisionCurve(expectedProportion =.5, # Specify the anticipated proportion. Use
   annotate("segment", x = 0, xend =  moe_object2$target_sample_size, y = moe_object2$moe, yend = moe_object2$moe, colour = "green", size=1, alpha=0.6) +
   annotate("label", x = 7, y = moe_object2$moe, colour = "green", size=3, alpha=1, label = round(moe_object2$moe,3)) +
   annotate("label", x = moe_object2$target_sample_size, y = 0.02, colour = "green", size=3, alpha=1, label = moe_object2$target_sample_size) 
+
+# Run a precision analysis for Research Aim (2)  ---------------------------------
+
+# Run the code below to compute a margin of error for given expected proportion and target sample size
+moe_object1 <- marginOfError(
+  expectedProportion = .17, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
+  sampleSize = 100, # Specify the target sample size
+  populationSize = 750, # If population size is known, we can apply a finite population correction, otherwise use Inf
+  confidenceLevel = .95, # specify the level of the confidence interval
+  type = 'wilson')
+
+# Lets get a second moe for a different target sample size (so we can display both on a precision curve)
+moe_object2 <- marginOfError(
+  expectedProportion = .67, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
+  sampleSize = 50, # Specify the target sample size
+  populationSize = 750, # If population size is known, we can apply a finite population correction, otherwise use Inf
+  confidenceLevel = .95, # specify the level of the confidence interval
+  type = 'wilson')
+
+# Now plot a precision curve showing precision (margin of error) as a function of sample size.
+# We'll annotate the plot with the parameters above
+
+precisionCurve(expectedProportion =.67, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
+               sampleSize = 100, # Specify the target sample size
+               populationSize = 750, # If population size is known, we can apply a finite population correction, otherwise use Inf
+               confidenceLevel = .95, # specify the level of the confidence interval
+               type = 'wilson' # specify the type of confidence interval (wald or wilson)
+) +
+  # this code annotates the precision curve with the moes computed above
+  annotate("segment", x = moe_object1$target_sample_size, xend = moe_object1$target_sample_size, y = 0, yend = moe_object1$moe, colour = "purple", size=1, alpha=0.6) +
+  annotate("segment", x = 0, xend = moe_object1$target_sample_size, y = moe_object1$moe, yend = moe_object1$moe, colour = "purple", size=1, alpha=0.6) +
+  annotate("label", x = 7, y = moe_object1$moe, colour = "purple", size=3, alpha=1, label = round(moe_object1$moe,3)) +
+  annotate("label", x = moe_object1$target_sample_size, y = 0.02, colour = "purple", size=3, alpha=1, label = moe_object1$target_sample_size) + 
+  
+  annotate("segment", x = moe_object2$target_sample_size, xend = moe_object2$target_sample_size, y = 0, yend = moe_object2$moe, colour = "green", size=1, alpha=0.6) +
+  annotate("segment", x = 0, xend =  moe_object2$target_sample_size, y = moe_object2$moe, yend = moe_object2$moe, colour = "green", size=1, alpha=0.6) +
+  annotate("label", x = 7, y = moe_object2$moe, colour = "green", size=3, alpha=1, label = round(moe_object2$moe,3)) +
+  annotate("label", x = moe_object2$target_sample_size, y = 0.02, colour = "green", size=3, alpha=1, label = moe_object2$target_sample_size) 
+
 
 # References  ---------------------------------
 
