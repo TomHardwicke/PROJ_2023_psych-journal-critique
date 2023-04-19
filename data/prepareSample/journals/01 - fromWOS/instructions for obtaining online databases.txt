@@ -1,35 +1,19 @@
 Instructions for obtaining online databases
 
 Files: 
-wos-core-SSCI-2023-February-22.csv
-wos-core-SCIE-2023-February-22.csv
-wos-core-ESCI-2023-February-22.csv
-wos-core-AHCI-2023-February-22.csv
-wos-jcr-psych-2022.csv
+
 
 
 Instructions: 
 
-1. The master lists of all journals included in the Web of Science Core Collection were obtained from https://mjl.clarivate.com/collection-list-downloads
+1. We sought to obtain a list of bibliographic records from the Web of Science Core Collection (specifically the Science Citation Index Expanded, Social Sciences Citation Index, Arts & Humanities Citation Index, and Emerging Sources Citation Index that met our inclusion criteria.
 
 2. Institutional access and login via ORCID was required. 
 
-3. There are separate files for each of the databases included in the Core Collection, specifically, the Social Sciences Citation Index (SSCI), the Science Citation Index Expanded (SCIE), the Arts and Humanities Citation Index (AHCI), and the Emerging Sources Citation Index (ESCI). There's also a file for the (top 600 ranked by Journal Impact Factor) psychology journals included in Journal Citation Reports (JCR), which includes journals from the SCIE and SSCI.
+3. We used the following search string on 2023-04-19:
 
-4. The files were downloaded on February 22, 2023. The website stated that the lists were last updated on January 18th, 2023.
+WC=(Psychology OR Psychology, Applied OR Psychology, Biological OR Psychology, Clinical OR Psychology, Developmental OR Psychology, Educational OR Psychology, Experimental OR Psychology, Mathematical OR Psychology, Multidisciplinary OR Psychology, Psychoanalysis OR Psychology, Social) AND DT=(Article OR Discussion OR Editorial Material OR Letter)
 
+With Publication Date limited between 2020-01-01 and 2020-12-31
 
-
-
-
----------
-
-
-Files: journals_by_IF_psychology_[SUBFIELD].csv (in journals_by_IF folder)
-The lists of Web of Science Social Sciences Citation Index journals ranked by 2019 Journal Impact Factor for each WOS subject category related to psychology were obtained using Journal Citation Reports (https://perma.cc/T2CT-3QE6).
-
-https://jcr.clarivate.com/jcr/home
-
-
-Using the filter panel on the left hand side, we chose the subject categories related to psychology, ensured the JCR year was 2019 and the edition was 'SSCI'. To get the lists for each subject category, we clicked on the hyperlinked number of journals for that category, then clicked the download symbol (a downward arrow pointing to an open box) to get a csv file.
-
+4. This search string identified 61,735 records.
