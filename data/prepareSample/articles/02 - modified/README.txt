@@ -1,6 +1,6 @@
 Instructions for obtaining data files
 
-NOTE: this file cannot be publicly shared because it contains a large portion of a proprietary database.
+NOTE: this data file cannot be publicly shared because it contains a large portion of a proprietary database.
 
 Files:
 WoS2020Article_List.csv
