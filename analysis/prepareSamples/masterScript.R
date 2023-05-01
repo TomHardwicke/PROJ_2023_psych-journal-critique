@@ -7,6 +7,8 @@ library(here)
 # It also loads and mungs the list of the top 600 (ranked by Impact Factor) psychology journals in Journal Citation Reports
 source(here('analysis','prepareSamples','organizeWOS.R'))
 
+
+
 # This script obtains a random sample of 40 psychology journals from among all psychology journals indexed by Web of Science (WOS)
 source(here('analysis','prepareSamples','randomSample.R'))
 

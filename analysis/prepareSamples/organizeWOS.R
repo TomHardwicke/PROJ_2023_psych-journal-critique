@@ -21,7 +21,7 @@ wos_psych <- wos_psych %>%
   rowwise() %>%
   mutate(WOS_first_psych_category = str_extract(`Web of Science Categories`, "Psychology(\\W+\\w+){0,1}"))
 
-write_csv(wos_psych,here('data','prepareSample','journals','02 - modified','wos-psych.csv')) # save file
+write_csv(wos_psych,here('data','prepareSample','journals','02 - modified','journals-all.csv')) # save file
 
 # this code loads the list of (the top 600) psychology journals included in Journal Citation Reports
 wos_psych_jcr <- read_csv(here('data','prepareSample','journals','01 - fromWOS','wos-jcr-psych-2022.csv')) # load list of the top 600 ranked psychology journals in JCR
@@ -32,4 +32,4 @@ wos_psych_jcr <- wos_psych_jcr %>%
   mutate(WOS_first_psych_category = str_extract(`Category`, "PSYCHOLOGY(\\W+\\w+){0,1}"),
          `Journal name` = str_to_upper(`Journal name`))
 
-write_csv(wos_psych_jcr,here('data','prepareSample','journals','02 - modified','jcr-psych.csv')) # save file
+write_csv(wos_psych_jcr,here('data','prepareSample','journals','02 - modified','journals-prominent.csv')) # save file

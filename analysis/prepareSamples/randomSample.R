@@ -1,45 +1,21 @@
-# This script obtains a random sample of 100 psychology journals from amongst all psychology journals included in the Web of Science Core Collection.
+# This script randomly shuffles the lists of journals and articles
 
 library(tidyverse)
 library(here)
 `%notin%` <- Negate(`%in%`)
 
-wos_psych <- read_csv(here('data','prepareSample','journals','02 - modified','wos-psych.csv')) # load list of all WOS psychology journals
-
-wos_psych <- wos_psych %>% filter(str_detect(Languages, 'English')) # filter to obtain only journals with English language articles
+journals_all <- read_csv(here('data','prepareSample','journals','02 - modified','journals-all.csv')) # load list of all WOS psychology journals
+journals_all_eng <- journals_all %>% filter(str_detect(Languages, 'English')) # filter to obtain only journals with English language articles
 
 set.seed(42) # set the seed for reproducibility of random sampling
-random_sample_original <- slice_sample(wos_psych, n = 100) # randomly sample 100 rows
+journals_all_eng_random <- slice_sample(journals_all_eng, n = 600) # randomly select 600 rows (we're doing more than the target sample of 100 to allow for exclusions)
 
-# remove any non-empirical journals identified during screening
-random_sample_adjusted <- random_sample_original %>%
-  filter(`Journal title` %notin% 
-           c("EUROPEAN PSYCHOLOGIST",
-             "JOURNAL OF CLASSIFICATION",
-             "INTERNATIONAL REVIEW OF SPORT AND EXERCISE PSYCHOLOGY"))
-
-# now we need to randomly select 3 replacement journals
-# firstly remove the originally sampled journals from the wos database
-wos_psych_eng_adjusted <- wos_psych_eng %>%
-  filter(`Journal title` %notin% random_sample_original$`Journal title`)
-
-# now draw three random journals from this adjusted database
-set.seed(42) # set the seed for reproducibility of random sampling
-random_sample_supplement <- slice_sample(wos_psych_eng_adjusted, n = 3) # randomly sample 3 rows
-
-random_sample <- rbind(random_sample_adjusted,random_sample_supplement) # combine the 3 new journals with the adjusted random sample
-
-# load the journal websites that were identified during screening and combine them with the journal list
-websites <- read_csv(here('data','primary','prepareSamples','randomSampleWebsites.csv')) %>%
-  filter(empirical == T) %>% 
-  select(`Journal title`,websites = `Journal website`)
-
-random_sample <- left_join(random_sample,websites, by = 'Journal title') 
-
-# apply formatting changes to standardize with the highImpactSample
-random_sample <- random_sample %>%
+# apply formatting changes to standardize with the prominent journal sample
+journals_all_eng_random <- journals_all_eng_random %>%
   select(everything(), 
          'Journal' = `Journal title`,
+         -Languages,
+         -`Publisher name`,
          -`Publisher address`)
 
-write_csv(random_sample, here('data','primary','prepareSamples','randomSample.csv')) # save the list of sampled journals
+write_csv(journals_all_eng_random, here('data','prepareSample','journals','03 - final','journals-random.csv')) # save the list of sampled journals
