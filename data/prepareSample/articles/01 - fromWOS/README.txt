@@ -1,6 +1,6 @@
 Instructions for obtaining data files
 
-NOTE: these files cannot be publicly shared because they contains large portions of a proprietary database.
+NOTE: these data files cannot be publicly shared because they contains large portions of a proprietary database.
 
 Files:
 **savedrecs.txt (12 files where ** ranges from 00 to 12)
