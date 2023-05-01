@@ -4,6 +4,10 @@ researchFiles/
 figs/
 protocol/
 
+# data files that cannot be shared
+data/prepareSample/articles/02 - modified/WoS2020Article_List.csv
+data/prepareSample/articles/01 - fromWOS/**savedrecs.txt
+
 # History files
 .Rhistory
 .Rapp.history
