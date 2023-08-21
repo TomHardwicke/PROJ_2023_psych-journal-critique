@@ -4,6 +4,8 @@ output: html_document
 date: "2023-08-21"
 ---
 
+# Load packages 
+
 ```{r setup, include=FALSE}
 library(tidyverse)
 library(here)
@@ -33,8 +35,76 @@ journal_list_prominent <- read_csv(here('data','prepareSample','journals', '03 -
   slice_head(n = 114) %>%
   select('Journal' = `Journal name`)
 ```
+# Rename colums 
 
-# Journals data
+Rename some columns for easier reference.
+
+```{r}
+d_journals <- d_journals %>%
+  select(coder_id = `Coder's Initials`,
+         pilot = `Are you piloting?`,
+         journal = `Journal Name`,
+         journal_empirical = `Does the journal publish empirical research?`,
+         web_comments = `Check the article types page and check for web comments — does the journal offer any type of PPC?`,
+         ppc_name_A = `A. Enter the name of the PPC type offered by the journal:`,
+         ppc_name_B = `B. Enter the name of the PPC type offered by the journal:`,
+         ppc_name_C = `C. Enter the name of the PPC type offered by the journal:`,
+         ppc_description_A = `A. Enter the verbatim description of this type of PPC provided by the journal`,
+         ppc_description_B = `B. Enter the verbatim description of this type of PPC provided by the journal`,
+         ppc_description_C = `C. Enter the verbatim description of this type of PPC provided by the journal`,
+         ppc_length_A = `A. Are there any length limits for this type of PPC?`,
+         ppc_length_B = `B. Are there any length limits for this type of PPC?`,
+         ppc_length_C = `C. Are there any length limits for this type of PPC?`,
+         ppc_time_A = `A. Are there any time limits for submission of this type of PPC?`,
+         ppc_time_B = `B. Are there any time limits for submission of this type of PPC?`,
+         ppc_time_C = `C. Are there any time limits for submission of this type of PPC?`,
+         ppc_ref_A = `A. Are there any reference limits for this type of PPC?`,
+         ppc_ref_B = `B. Are there any reference limits for this type of PPC?`,
+         ppc_ref_C = `C. Are there any reference limits for this type of PPC?`,
+         ppc_review_A = `A. Is this type of PPC sent for independent external peer review?`,
+         ppc_review_B = `B. Is this type of PPC sent for independent external peer review?`,
+         ppc_review_C = `C. Is this type of PPC sent for independent external peer review?`,
+         ppc_note_A = `A. Anything additional, unusual, or interesting to note?`,
+         ppc_note_B = `B. Anything additional, unusual, or interesting to note?`,
+         ppc_note_C = `C. Anything additional, unusual, or interesting to note?`,
+         general_note = `Anything additional, unusual, or interesting to note?`,
+         -starts_with("D. "), 
+         -ends_with("Are there any other types of PPC in this journal? (Remember to check for web comments!)`"))
+
+d_articles_random <- d_articles_random %>%
+  select(
+    article_id = `article id`,
+    coder_id_primary = `primary coder initials`,
+    coder_id_secondary = `secondary coder initials`,
+    exclusion_primary = `1_exclusion`,
+    exclsion_reason_primary = `1_exclusionReason`,
+    ppc_linked_primary = `1_Is article linked to PPC`,
+    notes_primary = `1_Additional notes`,
+    exclusion_secondary = `2_exclusion`,
+    exclsion_reason_secondary = `2_exclusionReason`,
+    ppc_linked_secondary = `2_Is article linked to PPC`,
+    notes_secondary = `2_Additional notes`
+  )
+
+
+d_articles_prominent <- d_articles_prominent %>%
+  select(
+    article_id = `article id`,
+    coder_initials_primary = `primary coder initials`,
+    coder_initials_secondary = `secondary coder initials`,
+    exclusion_primary = `1_exclusion`,
+    exclsion_reason_primary = `1_exclusionReason`,
+    ppc_linked_primary = `1_Is article linked to PPC`,
+    notes_primary = `1_Additional notes`,
+    exclusion_secondary = `2_exclusion`,
+    exclsion_reason_secondary = `2_exclusionReason`,
+    ppc_linked_secondary = `2_Is article linked to PPC`,
+    notes_secondary = `2_Additional notes`
+  )
+```
+
+
+# Inspect journals data
 
 Remove pilot journals
 
@@ -53,7 +123,7 @@ d_journals <- d_journals %>% mutate(`Journal Name` = fct_recode(`Journal Name`,
 ```
 
 ```{r}
-d2 <- d %>%
+d2 <- d_journals %>%
   mutate(
     sample_journal_prominent = `Journal Name` %in% journal_list_prominent$Journal,
     sample_journal_random = `Journal Name` %in% journal_list_random$Journal,
@@ -63,16 +133,16 @@ d2 <- d %>%
 ```
 
 ```{r}
-d %>% 
+d_journals %>% 
   count(`Journal Name`) %>%
   filter(n > 2)
 ```
 
 ```{r}
-d %>% filter(`Journal Name` == "CLINICAL PSYCHOLOGY-SCIENCE AND PRACTICE")
+d_journals %>% filter(`Journal Name` == "CLINICAL PSYCHOLOGY-SCIENCE AND PRACTICE")
 ```
 
-# Articles data
+# Inspect articles data
 
 Find cases where primary and secondary coder disagreed on whether to exclude.
 
@@ -88,7 +158,6 @@ d_articles_random %>%
   filter(`1_exclusion` != `2_exclusion`)
 ```
 
-
 Find cases where primary and secondary coder disagreed on whether to exclude.
 
 ```{r}
@@ -101,5 +170,12 @@ On first pass, it looks like we have some exclusion disagreements. Let's identif
 ```{r}
 d_articles_prominent %>%
   filter(`1_exclusion` != `2_exclusion`)
+```
+
+Our procedure is for TEH for resolve disagreements between the primary and secondary coders.
+
+```{r}
+
+
 ```
 
