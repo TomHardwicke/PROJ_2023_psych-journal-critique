@@ -35,6 +35,7 @@ journal_list_prominent <- read_csv(here('data','prepareSample','journals', '03 -
   slice_head(n = 114) %>%
   select('Journal' = `Journal name`)
 ```
+
 # Rename colums 
 
 Rename some columns for easier reference.
@@ -86,7 +87,6 @@ d_articles_random <- d_articles_random %>%
     notes_secondary = `2_Additional notes`
   )
 
-
 d_articles_prominent <- d_articles_prominent %>%
   select(
     article_id = `article id`,
@@ -103,30 +103,29 @@ d_articles_prominent <- d_articles_prominent %>%
   )
 ```
 
-
-# Inspect journals data
+# Inspect journal's data
 
 Remove pilot journals
 
 ```{r}
 d_journals <- d_journals %>%
-  filter(`Are you piloting?` == "No") %>%
-  select(-`Are you piloting?`)
+  filter(pilot == "No") %>%
+  select(-pilot)
 ```
 
-Change two journal names entered incorrectly so they match names in sample.
+Adjust two journal names entered incorrectly so they match names in sample.
 
 ```{r}
-d_journals <- d_journals %>% mutate(`Journal Name` = fct_recode(`Journal Name`, 
+d_journals <- d_journals %>% mutate(journal = fct_recode(journal, 
                                          "MEMORY & COGNITION" = "Memory & Cognition",
                                          "JOURNAL OF COUPLE & RELATIONSHIP THERAPY-INNOVATIONS IN CLINICAL AND EDUCATIONAL INTERVENTIONS" = "Journal of Couple & Relationship Therapy"))
 ```
 
 ```{r}
-d2 <- d_journals %>%
+d_journals <- d_journals %>%
   mutate(
-    sample_journal_prominent = `Journal Name` %in% journal_list_prominent$Journal,
-    sample_journal_random = `Journal Name` %in% journal_list_random$Journal,
+    sample_journal_prominent = journal %in% journal_list_prominent$Journal,
+    sample_journal_random = journal %in% journal_list_random$Journal,
     sample_journal_both = sample_journal_prominent & sample_journal_random,
     sample_journal_error = !sample_journal_prominent & !sample_journal_random
   )
@@ -134,7 +133,7 @@ d2 <- d_journals %>%
 
 ```{r}
 d_journals %>% 
-  count(`Journal Name`) %>%
+  count(journal) %>%
   filter(n > 2)
 ```
 

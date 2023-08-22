@@ -5,8 +5,9 @@ figs/
 protocol/
 
 # data files that cannot be shared
-data/prepareSample/articles/02 - modified/WoS2020Article_List.csv
-data/prepareSample/articles/01 - fromWOS/**savedrecs.txt
+data/prepareSample/articles/random/02 - modified/WoS2020Article_List.csv
+data/prepareSample/articles/random/01 - fromWOS/**savedrecs.txt
+
 
 # History files
 .Rhistory
@@ -49,3 +50,7 @@ vignettes/*.pdf
 # additional files
 PROJ_2023_psych-journal-critique.Rproj
 .DS_Store
+data/prepareSample/articles/prominent/01 - fromWOS/01savedrecs_articles_prominent.txt
+data/prepareSample/articles/prominent/01 - fromWOS/02savedrecs_articles_prominent.txt
+data/prepareSample/articles/prominent/01 - fromWOS/03savedrecs_articles_prominent.txt
+data/prepareSample/articles/prominent/02 - modified/articles-all-prominent.xls
