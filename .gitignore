@@ -3,6 +3,7 @@ manuscript/
 researchFiles/
 figs/
 protocol/
+Data/raw/
 
 # data files that cannot be shared
 data/prepareSample/articles/random/02 - modified/WoS2020Article_List.csv
