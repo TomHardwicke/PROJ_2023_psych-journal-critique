@@ -132,7 +132,7 @@ d_journals <- d_journals %>%
   )
 
 #Creates sampleID column denoting; prominent, random, or both to replace the 4 specified columns above
-d_journals %>% 
+d_journals <- d_journals %>% 
   mutate(sample_journal_prominent = ifelse(sample_journal_prominent, "prominent", "random")) %>%
   mutate(sample_journal_both = ifelse(sample_journal_both, "both", "na")) %>%
   mutate(sampleID = case_when(
