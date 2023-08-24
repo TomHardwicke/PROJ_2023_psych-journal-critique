@@ -35,6 +35,12 @@ journal_list_random <- read_csv(here('data','prepareSample','journals', '03 - fi
 journal_list_prominent <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv')) %>%
   slice_head(n = 114) %>%
   select('Journal' = `Journal name`)
+
+# list of all prominent journals (some not in sample)
+journal_list_prominent_all <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv'))
+
+# list of all random journals (some not in sample)
+journal_list_random_all <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-random.csv'))
 ```
 
 # Rename colums 
@@ -43,7 +49,8 @@ Rename some columns for easier reference.
 
 ```{r}
 d_journals <- d_journals %>%
-  select(coder_id = `Coder's Initials`,
+  select(timestamps = Timestamp,
+         coder_id = `Coder's Initials`,
          pilot = `Are you piloting?`,
          journal = `Journal Name`,
          journal_empirical = `Does the journal publish empirical research?`,
@@ -141,20 +148,79 @@ d_journals <- d_journals %>%
     TRUE ~ sample_journal_both
   )) %>%
   select(-c(sample_journal_prominent, sample_journal_random, sample_journal_both, sample_journal_error))
-
 ```
 
+Get JIFs for journals
 
-
-Check entries to ensure secondary coding and identify anomalous entries
 ```{r}
-d_journals %>% 
+d_journals_prominent <- d_journals %>%
+  filter(sampleID %in% c('prominent', 'both'))
+
+d_journals_random <- d_journals %>%
+  filter(sampleID == 'random')
+
+journal_list_prominent_all <- journal_list_prominent_all %>% 
+  select(journal = `Journal name`, `2021 JIF`, WOS_first_psych_category)
+
+d_journals_prominent <- left_join(d_journals_prominent, journal_list_prominent_all, by = 'journal')
+
+journal_list_random_all <- journal_list_random_all %>%
+  select(journal = Journal, WOS_first_psych_category)
+
+d_journals_random <- left_join(d_journals_random, journal_list_random_all, by = 'journal')
+
+journal_list_prominent_all <- journal_list_prominent_all %>%
+  select(-WOS_first_psych_category)
+  
+d_journals_random <- left_join(d_journals_random, journal_list_prominent_all, by = 'journal')
+
+tmp <- d_journals_random %>% filter(is.na(`2021 JIF`)) %>% distinct(journal, .keep_all = T)
+write_csv(tmp,here('data', 'prepareSample', 'journals', '02 - modified', 'we_need_jifs.csv'))
+```
+
+Check journals where we have more than 2 entries
+
+```{r}
+d_journals_prominent %>% 
   count(journal) %>%
   filter(n > 2)
 ```
 
+For the journal HUMAN ARENAS, RTT coded twice, first entry was an error and needs to be removed.
 ```{r}
-d_journals %>% filter(`Journal Name` == "CLINICAL PSYCHOLOGY-SCIENCE AND PRACTICE")
+d_journals_random <- d_journals_random %>%
+  filter(!(journal == "HUMAN ARENAS" & timestamps == "8/6/2023 3:37:26"))
+```
+
+For the journal INFANTS & YOUNG CHILDREN, MN coded twice, first entry was an error and needs to be removed.
+```{r}
+d_journals_random <- d_journals_random %>%
+  filter(!(journal == "INFANTS & YOUNG CHILDREN" & timestamps == "7/15/2023 18:51:15"))
+```
+For the journal EDUCATIONAL PSYCHOLOGIST, AW coded twice, first entry was an error and needs to be removed.
+```{r}
+d_journals_prominent <- d_journals_prominent %>%
+  filter(!(journal == "EDUCATIONAL PSYCHOLOGIST" & timestamps == "6/29/2023 14:06:13"))
+```
+
+For the journal EUROPEAN JOURNAL OF PERSONALITY, journal is in both samples so AW coded twice, entries are substantively the same, removing first entry.
+
+```{r}
+d_journals_prominent <- d_journals_prominent %>%
+  filter(!(journal == "EUROPEAN JOURNAL OF PERSONALITY" & timestamps == "6/29/2023 22:01:35"))
+```
+For the journal PERSONALITY AND SOCIAL PSYCHOLOGY REVIEW, two entries from NM, first entry was an error.
+
+```{r}
+d_journals_prominent <- d_journals_prominent %>%
+  filter(!(journal == "PERSONALITY AND SOCIAL PSYCHOLOGY REVIEW" & timestamps == "7/3/2023 18:34:38"))
+```
+
+For the journal PSYCHOLOGICAL MEDICINE, two entries from RTT, first entry was an error.
+
+```{r}
+d_journals_prominent <- d_journals_prominent %>%
+  filter(!(journal == "PSYCHOLOGICAL MEDICINE" & timestamps == "8/6/2023 9:49:10"))
 ```
 
 # Inspect articles data
