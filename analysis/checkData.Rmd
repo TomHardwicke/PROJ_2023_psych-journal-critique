@@ -7,40 +7,48 @@ date: "2023-08-21"
 # Load packages 
 
 ```{r setup, include=FALSE}
-library(tidyverse)
-library(here)
-library(tidylog)
+library(tidyverse) # for various tasks including munging and plotting
+library(here) # for easier file path access
+library(tidylog) # for inline programming reporting
+library(assertthat) # for testing
+`%notin%` <- Negate(`%in%`) # for identifying when values are not in a vector of expected values
 ```
 
 # Load data
 
+Load the extracted (i.e., manually coded) data.
+
 ```{r}
 # article data (random)
-d_articles_random <- read_csv(here('data','raw','articles (random) - Sheet1.csv')) %>%
-  filter(!is.na(`primary coder initials`) & !is.na(`secondary coder initials`)) # we only need articles that we're coded by someone
+d_articles_random <- read_csv(here('data','raw','articles (random) - Sheet1.csv'), show_col_types = F) %>%
+  filter(!is.na(`primary coder initials`) & !is.na(`secondary coder initials`)) # we only need articles that were coded by someone
 
 # article data (prominent)
-d_articles_prominent <- read_csv(here('data','raw','articles (prominent) - Sheet1.csv'))  %>%
-  filter(!is.na(`primary coder initials`) & !is.na(`secondary coder initials`)) # we only need articles that we're coded by someone
+d_articles_prominent <- read_csv(here('data','raw','articles (prominent) - Sheet1.csv'), show_col_types = F)  %>%
+  filter(!is.na(`primary coder initials`) & !is.na(`secondary coder initials`)) # we only need articles that were coded by someone
 
 # journal data (random and prominent sample)
-d_journals <- read_csv(here('data','raw','Data Extraction Form (policy) (Responses) - Form Responses 1.csv'))
+d_journals <- read_csv(here('data','raw','Data Extraction Form (policy) (Responses) - Form Responses 1.csv'), show_col_types = F)
+```
 
+There is some information about the sample that isn't included in the extracted data files (e.g., JIFs, Web of Science subject category), so we need to load some of that information from the original sample files.
+
+```{r}
 # list of journals in random sample
-journal_list_random <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-random.csv')) %>%
+journal_list_random <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-random.csv'), show_col_types = F) %>%
   slice_head(n = 108) %>%
   select(`Journal`)
 
 # list of journals in prominent sample
-journal_list_prominent <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv')) %>%
+journal_list_prominent <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv'), show_col_types = F) %>%
   slice_head(n = 114) %>%
   select('Journal' = `Journal name`)
 
 # list of all prominent journals (some not in sample)
-journal_list_prominent_all <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv'))
+journal_list_prominent_all <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv'), show_col_types = F)
 
 # list of all random journals (some not in sample)
-journal_list_random_all <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-random.csv'))
+journal_list_random_all <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-random.csv'), show_col_types = F)
 ```
 
 # Rename colums 
@@ -86,11 +94,11 @@ d_articles_random <- d_articles_random %>%
     coder_id_primary = `primary coder initials`,
     coder_id_secondary = `secondary coder initials`,
     exclusion_primary = `1_exclusion`,
-    exclsion_reason_primary = `1_exclusionReason`,
+    exclusion_reason_primary = `1_exclusionReason`,
     ppc_linked_primary = `1_Is article linked to PPC`,
     notes_primary = `1_Additional notes`,
     exclusion_secondary = `2_exclusion`,
-    exclsion_reason_secondary = `2_exclusionReason`,
+    exclusion_reason_secondary = `2_exclusionReason`,
     ppc_linked_secondary = `2_Is article linked to PPC`,
     notes_secondary = `2_Additional notes`
   )
@@ -98,22 +106,24 @@ d_articles_random <- d_articles_random %>%
 d_articles_prominent <- d_articles_prominent %>%
   select(
     article_id = `article id`,
-    coder_initials_primary = `primary coder initials`,
-    coder_initials_secondary = `secondary coder initials`,
+    coder_id_primary = `primary coder initials`,
+    coder_id_secondary = `secondary coder initials`,
     exclusion_primary = `1_exclusion`,
-    exclsion_reason_primary = `1_exclusionReason`,
+    exclusion_reason_primary = `1_exclusionReason`,
     ppc_linked_primary = `1_Is article linked to PPC`,
     notes_primary = `1_Additional notes`,
     exclusion_secondary = `2_exclusion`,
-    exclsion_reason_secondary = `2_exclusionReason`,
+    exclusion_reason_secondary = `2_exclusionReason`,
     ppc_linked_secondary = `2_Is article linked to PPC`,
     notes_secondary = `2_Additional notes`
   )
 ```
 
-# Inspect journal's data
+# Remove non-relevant rows
 
-Remove pilot journals
+## Remove pilot journals
+
+Removing all rows that were entered during piloting and therefore not part of the main sample.
 
 ```{r}
 d_journals <- d_journals %>%
@@ -121,14 +131,184 @@ d_journals <- d_journals %>%
   select(-pilot)
 ```
 
-Adjust two journal names entered incorrectly so they match names in sample.
+## Remove erroneous rows
+
+Occasionally coders entered data for the same journal twice. Below we remove the erroneous rows, using the journal name and data entry timestamp to identify the relevant rows.
+
+For the journal HUMAN ARENAS, RTT coded twice, first entry was an error and needs to be removed.
 
 ```{r}
-d_journals <- d_journals %>% mutate(journal = fct_recode(journal, 
-                                         "MEMORY & COGNITION" = "Memory & Cognition",
-                                         "JOURNAL OF COUPLE & RELATIONSHIP THERAPY-INNOVATIONS IN CLINICAL AND EDUCATIONAL INTERVENTIONS" = "Journal of Couple & Relationship Therapy"))
+d_journals <- d_journals %>%
+  filter(!(journal == "HUMAN ARENAS" & timestamps == "8/6/2023 3:37:26"))
 ```
+
+For the journal INFANTS & YOUNG CHILDREN, MN coded twice, first entry was an error and needs to be removed.
+
+```{r}
+d_journals <- d_journals %>%
+  filter(!(journal == "INFANTS & YOUNG CHILDREN" & timestamps == "7/15/2023 18:51:15"))
+```
+
+For the journal EDUCATIONAL PSYCHOLOGIST, AW coded twice, first entry was an error and needs to be removed.
+
+```{r}
+d_journals <- d_journals %>%
+  filter(!(journal == "EDUCATIONAL PSYCHOLOGIST" & timestamps == "6/29/2023 14:06:13"))
+```
+
+For the journal EUROPEAN JOURNAL OF PERSONALITY, journal is in both samples so AW coded twice, entries are substantively the same, removing first entry.
+
+```{r}
+d_journals <- d_journals %>%
+  filter(!(journal == "EUROPEAN JOURNAL OF PERSONALITY" & timestamps == "6/29/2023 22:01:35"))
+```
+
+For the journal PERSONALITY AND SOCIAL PSYCHOLOGY REVIEW, two entries from NM, first entry was an error.
+
+```{r}
+d_journals <- d_journals %>%
+  filter(!(journal == "PERSONALITY AND SOCIAL PSYCHOLOGY REVIEW" & timestamps == "7/3/2023 18:34:38"))
+```
+
+For the journal PSYCHOLOGICAL MEDICINE, two entries from RTT, first entry was an error.
+
+```{r}
+d_journals <- d_journals %>%
+  filter(!(journal == "PSYCHOLOGICAL MEDICINE" & timestamps == "8/6/2023 9:49:10"))
+```
+
+# Perform initial tests and fix issues
+
+Let's check a few columns to see if they contain what we expect.
+
+## Journals
+
+Check every row has an entry in `timestamps`.
+
+```{r}
+assert_that(
+  all(!is.na(d_journals$timestamps)),
+  msg = "Found missing timestamps"
+)
+```
+
+Check we have the expected coder initials in `coder_id` and convert column to factor.
+
+```{r}
+expected_coders <- c("AW", "NM", "SV", "RTT", "TEH", "SS", "BC")
+
+assert_that(
+  all(d_journals$coder_id %in% expected_coders),
+  msg = "Found unexpected values in the coder_id column"
+)
+
+d_journals$coder_id = factor(d_journals$coder_id) # make this column a factor
+```
+
+Check every row has a `journal`. 
+
+```{r}
+assert_that(
+  all(!is.na(d_journals$journal)),
+  msg = "Found missing journal name"
+)
+```
+
+Check every row has a `journal` that appears in the original random or prominent sample lists. We initially get an error for this test because some journal names were entered in the extraction form with incorrect formatting. Correct this below before running the test.
+
+```{r}
+d_journals <- d_journals %>% 
+  mutate(journal = fct_recode(journal,
+                              "MEMORY & COGNITION" = "Memory & Cognition","JOURNAL OF COUPLE & RELATIONSHIP THERAPY-INNOVATIONS IN CLINICAL AND EDUCATIONAL INTERVENTIONS" = "Journal of Couple & Relationship Therapy"))
+```
+
+```{r}
+assert_that(
+  all(d_journals$journal %in% c(journal_list_prominent$Journal, journal_list_random$Journal)),
+  msg = "Found journal names that do not match sample"
+)
+```
+
+That fixed the problem, now all journal names in the extracted data match journal names in the sample files.
+
+We can't run any more useful tests at this point because in many columns coders have used entered free text to explain cases that were unclear. So we will run tests again later after coding discrepancies have been resolved.
+
+## Articles
+
+Firstly let's join the prominent and random articles together (with a new column identifying which sample they are in) to streamline some testing.
+
+```{r}
+d_articles <- bind_rows(
+  d_articles_random %>% mutate(sampleID = "random"),
+  d_articles_prominent %>% mutate(sampleID = "prominent")
+)
+```
+
+
+
+Check every row has an entry in `article_id`.
+
+```{r}
+assert_that(
+  all(!is.na(d_articles$article_id)),
+  msg = "Found missing article ids"
+)
+```
+
+Check we have the expected coder initials in `coder_id_primary` and `coder_id_secondary` columns and convert columns to factor.
+
+```{r}
+assert_that(
+  all(d_articles$coder_id_primary %in% expected_coders),
+  msg = "Found unexpected values in the coder_id_primary column"
+)
+
+assert_that(
+  all(d_articles$coder_id_secondary %in% expected_coders),
+  msg = "Found unexpected values in the coder_id_primary column"
+)
+
+# make these columns factors
+d_articles$coder_id_primary = factor(d_articles$coder_id_primary)
+d_articles$coder_id_secondary = factor(d_articles$coder_id_secondary)
+
+```
+
+Now check we only have expected values in the `exclusion_primary` column.
+
+```{r}
+assert_that(
+  all(d_articles$exclusion_primary %in% c("RETAIN", "EXCLUDE")),
+  msg = "Found unexpected values in the exclusion_primary column"
+)
+```
+Now check we only have expected values in the `exclusion_secondary` column.
+
+```{r}
+assert_that(
+  all(d_articles$exclusion_secondary %in% c("RETAIN", "EXCLUDE")),
+  msg = "Found unexpected values in the exclusion_primary column"
+)
+```
+
+Now check that when `exclusion_primary` is "RETAIN" `exclusion_reason` is NA.
+
+```{r}
+d_articles <- d_articles %>%
+  mutate(exc_col_check = ifelse(exclusion_primary == "RETAIN" & is.na(exclusion_reason_primary), T, F)) # if we are retaining there should be an NA in the reason column
+  
+assert_that(all(d_articles$exc_col_check == F), msg = "Found unexpected value in exclusion reason column when it should be NA")
+```
+
+
+# Attach sample information to extracted data
+
+## Identify sample for journals
+
+The `d_journals` dataset does not identify whether journals were in the prominent sample, random sample, or both. So we need to get the sample ID retroactively using the files containing all journals included in the sample.
+
 Create sample ID column(s) to indicate whether in prominent, random, or both samples
+
 ```{r}
 d_journals <- d_journals %>%
   mutate(
@@ -150,7 +330,7 @@ d_journals <- d_journals %>%
   select(-c(sample_journal_prominent, sample_journal_random, sample_journal_both, sample_journal_error))
 ```
 
-Get JIFs for journals
+## Identify JIFs for journals
 
 ```{r}
 d_journals_prominent <- d_journals %>%
@@ -178,58 +358,13 @@ tmp <- d_journals_random %>% filter(is.na(`2021 JIF`)) %>% distinct(journal, .ke
 write_csv(tmp,here('data', 'prepareSample', 'journals', '02 - modified', 'we_need_jifs.csv'))
 ```
 
-Check journals where we have more than 2 entries
-
-```{r}
-d_journals_prominent %>% 
-  count(journal) %>%
-  filter(n > 2)
-```
-
-For the journal HUMAN ARENAS, RTT coded twice, first entry was an error and needs to be removed.
-```{r}
-d_journals_random <- d_journals_random %>%
-  filter(!(journal == "HUMAN ARENAS" & timestamps == "8/6/2023 3:37:26"))
-```
-
-For the journal INFANTS & YOUNG CHILDREN, MN coded twice, first entry was an error and needs to be removed.
-```{r}
-d_journals_random <- d_journals_random %>%
-  filter(!(journal == "INFANTS & YOUNG CHILDREN" & timestamps == "7/15/2023 18:51:15"))
-```
-For the journal EDUCATIONAL PSYCHOLOGIST, AW coded twice, first entry was an error and needs to be removed.
-```{r}
-d_journals_prominent <- d_journals_prominent %>%
-  filter(!(journal == "EDUCATIONAL PSYCHOLOGIST" & timestamps == "6/29/2023 14:06:13"))
-```
-
-For the journal EUROPEAN JOURNAL OF PERSONALITY, journal is in both samples so AW coded twice, entries are substantively the same, removing first entry.
-
-```{r}
-d_journals_prominent <- d_journals_prominent %>%
-  filter(!(journal == "EUROPEAN JOURNAL OF PERSONALITY" & timestamps == "6/29/2023 22:01:35"))
-```
-For the journal PERSONALITY AND SOCIAL PSYCHOLOGY REVIEW, two entries from NM, first entry was an error.
-
-```{r}
-d_journals_prominent <- d_journals_prominent %>%
-  filter(!(journal == "PERSONALITY AND SOCIAL PSYCHOLOGY REVIEW" & timestamps == "7/3/2023 18:34:38"))
-```
-
-For the journal PSYCHOLOGICAL MEDICINE, two entries from RTT, first entry was an error.
-
-```{r}
-d_journals_prominent <- d_journals_prominent %>%
-  filter(!(journal == "PSYCHOLOGICAL MEDICINE" & timestamps == "8/6/2023 9:49:10"))
-```
-
 # Inspect articles data
 
 Find cases where primary and secondary coder disagreed on whether to exclude.
 
 ```{r}
 d_articles_random %>%
-  count(`1_exclusion`, `2_exclusion`)
+  count(exclusion_primary)
 ```
 
 On first pass, it looks like we have some exclusion disagreements. Let's identify the relevant papers:
@@ -259,4 +394,21 @@ Our procedure is for TEH for resolve disagreements between the primary and secon
 
 
 ```
+
+
+
+
+# Final tests
+
+Now check that `journal_empirical` contains only 'Yes' or 'No'. When we first run the test we get unexpected values.
+
+and convert these to `TRUE` and `FALSE` respectively.
+
+```{r}
+assert_that(
+  all(d_journals$journal_empirical %in% c("Yes", "No")),
+  msg = "Found unexpected values in journal_empirical column"
+)
+```
+
 
