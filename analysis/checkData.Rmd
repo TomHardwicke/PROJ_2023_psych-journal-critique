@@ -487,9 +487,13 @@ d_articles <- d_articles %>%
     TRUE ~ "ERROR" # if none of the above, retain whatever is in this column already
   ))
 ```
+
+After removing excluded articles, there should be 
+
 ```{r}
 d_articles %>%
-  count(exclusion_final,ppc_linked_final,sampleID)
+  filter(exclusion_final == "RETAIN") %>%
+  count(sampleID, coder_id_primary)
 ```
 
 
