@@ -370,16 +370,16 @@ write_csv(tmp,here('data', 'prepareSample', 'journals', '02 - modified', 'we_nee
 
 # Inspect articles data
 
-```{r}
-
-```
-
-
 Find cases where primary and secondary coder disagreed on whether to exclude.
 
 ```{r}
 d_articles %>%
-  count(exclusion_primary, exclusion_secondary)
+  filter(exclusion_primary != exclusion_secondary)
+```
+
+
+```{r}
+
 ```
 
 Random ID 37 — TEH decides to go with primary coder and retain.
@@ -388,39 +388,6 @@ Random ID 68 - TEH decides to go with secondary coder and exclude.
 Random ID 95 - TEH decides to go with secondary coder and retain.
 Random ID 103 — TEH decides to go with primary coder and exclude.
 Random ID 120 — TEH decides to go with primary coder and retain.
-
-```{r}
-d_articles %>%
-  filter(exclusion_primary != exclusion_secondary)
-```
-
-On first pass, it looks like we have some exclusion disagreements. Let's identify the relevant papers:
-
-```{r}
-d_articles_random %>%
-  filter(`1_exclusion` != `2_exclusion`)
-```
-
-Find cases where primary and secondary coder disagreed on whether to exclude.
-
-```{r}
-d_articles_prominent %>%
-  count(`1_exclusion`, `2_exclusion`)
-```
-
-On first pass, it looks like we have some exclusion disagreements. Let's identify the relevant papers:
-
-```{r}
-d_articles_prominent %>%
-  filter(`1_exclusion` != `2_exclusion`)
-```
-
-Our procedure is for TEH for resolve disagreements between the primary and secondary coders.
-
-```{r}
-
-
-```
 
 
 
