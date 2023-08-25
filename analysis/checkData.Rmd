@@ -309,8 +309,6 @@ Now check that when `exclusion_primary` and `exclusion_secondary` are "EXCLUDE" 
 ```
 
 
-
-
 # Attach sample information to extracted data
 
 ## Identify sample for journals
@@ -377,19 +375,122 @@ d_articles %>%
   filter(exclusion_primary != exclusion_secondary)
 ```
 
+Following protocol, coding discrepancies are resolved by TEH. We now create an `exclusion_final` column which represents the resolved coding. TEH decides to either go with the primary or secondary coder's verdict. For other articles, we use the primary coder's verdict (which is the same as the secondary coder).
 
 ```{r}
+# create exclusion_final column
+d_articles <- d_articles %>%
+  mutate(exclusion_final = case_when(
+    sampleID == 'random' & article_id == '37' ~ exclusion_primary,
+    sampleID == 'random' & article_id == '41' ~ exclusion_primary,
+    sampleID == 'random' & article_id == '68' ~ exclusion_secondary,
+    sampleID == 'random' & article_id == '95' ~ exclusion_secondary,
+    sampleID == 'random' & article_id == '103' ~ exclusion_primary,
+    sampleID == 'random' & article_id == '120' ~ exclusion_primary,
+    sampleID == 'prominent' & article_id == '30' ~ exclusion_secondary,
+    sampleID == 'prominent' & article_id == '49' ~ exclusion_primary,
+    sampleID == 'prominent' & article_id == '66' ~ exclusion_primary,
+    sampleID == 'prominent' & article_id == '98' ~ exclusion_primary,
+    TRUE ~ exclusion_primary
+  ))
 
+# create exclusion_reason_final column
+d_articles <- d_articles %>%
+  mutate(exclusion_reason_final = case_when(
+    sampleID == 'random' & article_id == '37' ~ exclusion_reason_primary,
+    sampleID == 'random' & article_id == '41' ~ exclusion_reason_primary,
+    sampleID == 'random' & article_id == '68' ~ exclusion_reason_secondary,
+    sampleID == 'random' & article_id == '95' ~ exclusion_reason_secondary,
+    sampleID == 'random' & article_id == '103' ~ exclusion_reason_primary,
+    sampleID == 'random' & article_id == '120' ~ exclusion_reason_primary,
+    sampleID == 'prominent' & article_id == '30' ~ exclusion_reason_secondary,
+    sampleID == 'prominent' & article_id == '49' ~ exclusion_reason_primary,
+    sampleID == 'prominent' & article_id == '66' ~ exclusion_reason_primary,
+    sampleID == 'prominent' & article_id == '98' ~ exclusion_reason_primary,
+    TRUE ~ exclusion_reason_primary
+  ))
 ```
 
-Random ID 37 — TEH decides to go with primary coder and retain.
-Random ID 41 - TEH decides to go with primary coder and retain.
-Random ID 68 - TEH decides to go with secondary coder and exclude.
-Random ID 95 - TEH decides to go with secondary coder and retain.
-Random ID 103 — TEH decides to go with primary coder and exclude.
-Random ID 120 — TEH decides to go with primary coder and retain.
+Find cases where primary and secondary coder disagreed on why to exclude.
 
+```{r}
+# we've already dealt with cases where the decision to exclude differs, so we're not looking only at cases where the decision to exclude matches, but the reason for exclusion differs
+d_articles %>%
+  filter(exclusion_primary == exclusion_secondary, 
+         exclusion_reason_primary != exclusion_reason_secondary) %>%
+  select(article_id, sampleID, exclusion_reason_primary, exclusion_reason_secondary)
+```
+We will resolve these by applying the exclusion criteria hierarchically. In other words, we use the highest level of exclusion criteria assigned by one of the two coders.
+1. Access
+2. English
+3. Retracted 
+4. Non-empirical
 
+```{r}
+# update exclusion_reason_final column when primary and secondary coder disagree on reason to exclude.
+d_articles <- d_articles %>%
+  mutate(exclusion_reason_final = case_when(
+    sampleID == 'random' & article_id == '14' ~ exclusion_reason_primary,
+    sampleID == 'random' & article_id == '35' ~ exclusion_reason_primary,
+    sampleID == 'random' & article_id == '54' ~ exclusion_reason_secondary,
+    sampleID == 'random' & article_id == '73' ~ exclusion_reason_primary,
+    sampleID == 'random' & article_id == '78' ~ exclusion_reason_primary,
+    sampleID == 'prominent' & article_id == '29' ~ "RETRACTED", # the article was withdrawn, retracted seems like the closest fit among out labels
+    sampleID == 'prominent' & article_id == '37' ~ exclusion_reason_primary,
+    sampleID == 'prominent' & article_id == '39' ~ exclusion_reason_primary,
+    sampleID == 'prominent' & article_id == '46' ~ exclusion_reason_primary,
+    sampleID == 'prominent' & article_id == '54' ~ exclusion_reason_secondary,
+    TRUE ~ exclusion_reason_final # if none of the above, retain whatever is in this column already
+  ))
+```
+Finally, let's check anything that was excluded with the reason "OTHER". 
+
+```{r}
+d_articles %>% filter(exclusion_reason_final == "OTHER") %>% select(article_id, sampleID)
+```
+Article ID 68 can reclassifed as "NO ACCESS" and for the other three articles we can create a new post-hoc exclusion category "CONFERENCE ABSTRACT".
+
+```{r}
+d_articles <- d_articles %>%
+  mutate(exclusion_reason_final = case_when(
+    sampleID == 'random' & article_id == '68' ~ "NO ACCESS",
+    sampleID == 'prominent' & article_id == '2' ~ "CONFERENCE ABSTRACT",
+    sampleID == 'prominent' & article_id == '56' ~ "CONFERENCE ABSTRACT",
+    sampleID == 'prominent' & article_id == '85' ~ "CONFERENCE ABSTRACT",
+    TRUE ~ exclusion_reason_final # if none of the above, retain whatever is in this column already
+  ))
+```
+We should now have resolved coding for all exclusion decisions and exclusion reasons in d_articles
+
+```{r}
+d_articles %>%
+  count(exclusion_final, exclusion_reason_final)
+```
+
+Now for articles that are retained, we need to check if they have the same classification in `ppc_linked`.
+
+```{r}
+d_articles %>%
+  filter(exclusion_final == "RETAIN",
+         ppc_linked_primary != ppc_linked_secondary)
+```
+
+There appears to be one case where the primary coder did not identify any PPC links, but the secondary coder did. After review, TEH determines that there is a linked PPC for this article. Thus for this article, the final coding is the same as the secondary coder's classification, and for all other articles we use the primary coder's classification (which is the same as the secondary coders in those cases).
+
+```{r}
+d_articles <- d_articles %>%
+  mutate(ppc_linked_final = case_when(
+    exclusion_final == "EXCLUDE" ~ NA_character_, # if article is excluded, use NA
+    sampleID == 'prominent' & article_id == '38' ~ ppc_linked_secondary,
+    exclusion_final == "RETAIN" & exclusion_primary == "RETAIN" ~ ppc_linked_primary,
+    exclusion_final == "RETAIN" & exclusion_secondary == "RETAIN" ~ ppc_linked_secondary,
+    TRUE ~ "ERROR" # if none of the above, retain whatever is in this column already
+  ))
+```
+```{r}
+d_articles %>%
+  count(exclusion_final,ppc_linked_final,sampleID)
+```
 
 
 # Final tests
