@@ -244,8 +244,6 @@ d_articles <- bind_rows(
 )
 ```
 
-
-
 Check every row has an entry in `article_id`.
 
 ```{r}
@@ -291,14 +289,26 @@ assert_that(
 )
 ```
 
-Now check that when `exclusion_primary` is "RETAIN" `exclusion_reason` is NA.
+Now check that when `exclusion_primary` and `exclusion_secondary` are "EXCLUDE" then we have reasons in the reason columns. When they are "RETAIN" the reason columns should be NA.
 
 ```{r}
-d_articles <- d_articles %>%
-  mutate(exc_col_check = ifelse(exclusion_primary == "RETAIN" & is.na(exclusion_reason_primary), T, F)) # if we are retaining there should be an NA in the reason column
-  
-assert_that(all(d_articles$exc_col_check == F), msg = "Found unexpected value in exclusion reason column when it should be NA")
+# primary_exclusions <- d_articles %>% 
+#   count(exclusion_primary, exclusion_reason_primary) %>%
+#   mutate(expected_values = case_when(
+#     exclusion_primary == "RETAIN" & is.na(exclusion_reason_primary) ~ T,
+#     exclusion_primary == "EXCLUDE" & exclusion_reason_primary %in% c("NO ACCESS", "NON-ENGLISH", "NOT EMPIRICAL", "RETRACTED", "IS ITSELF PPC", "OTHER") ~ T,
+#     TRUE ~ "criteria not met"
+#   ))
+# 
+# secondary_exclusions <- d_articles %>% 
+#   count(exclusion_secondary, exclusion_reason_secondary) %>%
+#   
+# 
+# 
+# assert_that(, msg = "Found unexpected value in exclusion reason column when it should be NA")
 ```
+
+
 
 
 # Attach sample information to extracted data
@@ -360,11 +370,28 @@ write_csv(tmp,here('data', 'prepareSample', 'journals', '02 - modified', 'we_nee
 
 # Inspect articles data
 
+```{r}
+
+```
+
+
 Find cases where primary and secondary coder disagreed on whether to exclude.
 
 ```{r}
-d_articles_random %>%
-  count(exclusion_primary)
+d_articles %>%
+  count(exclusion_primary, exclusion_secondary)
+```
+
+Random ID 37 — TEH decides to go with primary coder and retain.
+Random ID 41 - TEH decides to go with primary coder and retain.
+Random ID 68 - TEH decides to go with secondary coder and exclude.
+Random ID 95 - TEH decides to go with secondary coder and retain.
+Random ID 103 — TEH decides to go with primary coder and exclude.
+Random ID 120 — TEH decides to go with primary coder and retain.
+
+```{r}
+d_articles %>%
+  filter(exclusion_primary != exclusion_secondary)
 ```
 
 On first pass, it looks like we have some exclusion disagreements. Let's identify the relevant papers:
