@@ -492,8 +492,8 @@ d_articles <- d_articles %>%
 ```{r}
 d_journals %>%
   group_by(journal) %>%
-  summarise(num_unique_emp = n_distinct(anyPPC), unique_emp = toString(unique(anyPPC))) %>%
-  filter(num_unique_prices > 1)
+  summarise(unique_responses = n_distinct(anyPPC)) %>% # get the number of unique responses to this Q (should be 1 if they match)
+  filter(unique_responses > 1)
 
 
 ```
