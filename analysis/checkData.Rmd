@@ -366,7 +366,7 @@ tmp <- d_journals_random %>% filter(is.na(`2021 JIF`)) %>% distinct(journal, .ke
 write_csv(tmp,here('data', 'prepareSample', 'journals', '02 - modified', 'we_need_jifs.csv'))
 ```
 
-# Inspect articles data
+# Resolve coding disagreements in articles data
 
 Find cases where primary and secondary coder disagreed on whether to exclude.
 
@@ -487,15 +487,16 @@ d_articles <- d_articles %>%
     TRUE ~ "ERROR" # if none of the above, retain whatever is in this column already
   ))
 ```
-
-After removing excluded articles, there should be 
+# Resolve coding disagreements in journals data
 
 ```{r}
-d_articles %>%
-  filter(exclusion_final == "RETAIN") %>%
-  count(sampleID, coder_id_primary)
-```
+d_journals %>%
+  group_by(journal) %>%
+  summarise(num_unique_emp = n_distinct(anyPPC), unique_emp = toString(unique(anyPPC))) %>%
+  filter(num_unique_prices > 1)
 
+
+```
 
 # Final tests
 
