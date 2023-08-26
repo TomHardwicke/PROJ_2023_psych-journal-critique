@@ -489,6 +489,8 @@ d_articles <- d_articles %>%
 ```
 # Resolve coding disagreements in journals data
 
+Note — its easier to do this in the original spreadsheet — for each journal I've added a new row with coder initials "FINAL (TEH)". If primary and secondary coding are aligned I just copied them into this row. If there are differences, I resolved them and entered the final decision into the new row.
+
 ```{r}
 d_journals %>%
   group_by(journal) %>%
