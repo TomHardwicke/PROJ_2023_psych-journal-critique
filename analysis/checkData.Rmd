@@ -63,27 +63,27 @@ d_journals <- d_journals %>%
          journal = `Journal Name`,
          journal_empirical = `Does the journal publish empirical research?`,
          anyPPC = `Check the article types page and check for web comments — does the journal offer any type of PPC?`,
-         ppc_name_A = `A. Enter the name of the PPC type offered by the journal:`,
-         ppc_name_B = `B. Enter the name of the PPC type offered by the journal:`,
-         ppc_name_C = `C. Enter the name of the PPC type offered by the journal:`,
-         ppc_description_A = `A. Enter the verbatim description of this type of PPC provided by the journal`,
-         ppc_description_B = `B. Enter the verbatim description of this type of PPC provided by the journal`,
-         ppc_description_C = `C. Enter the verbatim description of this type of PPC provided by the journal`,
-         ppc_length_A = `A. Are there any length limits for this type of PPC?`,
-         ppc_length_B = `B. Are there any length limits for this type of PPC?`,
-         ppc_length_C = `C. Are there any length limits for this type of PPC?`,
-         ppc_time_A = `A. Are there any time limits for submission of this type of PPC?`,
-         ppc_time_B = `B. Are there any time limits for submission of this type of PPC?`,
-         ppc_time_C = `C. Are there any time limits for submission of this type of PPC?`,
-         ppc_ref_A = `A. Are there any reference limits for this type of PPC?`,
-         ppc_ref_B = `B. Are there any reference limits for this type of PPC?`,
-         ppc_ref_C = `C. Are there any reference limits for this type of PPC?`,
-         ppc_review_A = `A. Is this type of PPC sent for independent external peer review?`,
-         ppc_review_B = `B. Is this type of PPC sent for independent external peer review?`,
-         ppc_review_C = `C. Is this type of PPC sent for independent external peer review?`,
-         ppc_note_A = `A. Anything additional, unusual, or interesting to note?`,
-         ppc_note_B = `B. Anything additional, unusual, or interesting to note?`,
-         ppc_note_C = `C. Anything additional, unusual, or interesting to note?`,
+         A_ppc_name = `A. Enter the name of the PPC type offered by the journal:`,
+         B_ppc_name = `B. Enter the name of the PPC type offered by the journal:`,
+         C_ppc_name = `C. Enter the name of the PPC type offered by the journal:`,
+         A_ppc_description = `A. Enter the verbatim description of this type of PPC provided by the journal`,
+         B_ppc_description = `B. Enter the verbatim description of this type of PPC provided by the journal`,
+         C_ppc_description = `C. Enter the verbatim description of this type of PPC provided by the journal`,
+         A_ppc_length = `A. Are there any length limits for this type of PPC?`,
+         B_ppc_length = `B. Are there any length limits for this type of PPC?`,
+         C_ppc_length = `C. Are there any length limits for this type of PPC?`,
+         A_ppc_time = `A. Are there any time limits for submission of this type of PPC?`,
+         B_ppc_time = `B. Are there any time limits for submission of this type of PPC?`,
+         C_ppc_time = `C. Are there any time limits for submission of this type of PPC?`,
+         A_ppc_ref = `A. Are there any reference limits for this type of PPC?`,
+         B_ppc_ref = `B. Are there any reference limits for this type of PPC?`,
+         C_ppc_ref = `C. Are there any reference limits for this type of PPC?`,
+         A_ppc_review = `A. Is this type of PPC sent for independent external peer review?`,
+         B_ppc_review = `B. Is this type of PPC sent for independent external peer review?`,
+         C_ppc_review = `C. Is this type of PPC sent for independent external peer review?`,
+         A_ppc_note = `A. Anything additional, unusual, or interesting to note?`,
+         B_ppc_note = `B. Anything additional, unusual, or interesting to note?`,
+         C_ppc_note = `C. Anything additional, unusual, or interesting to note?`,
          general_note = `Anything additional, unusual, or interesting to note?`,
          -starts_with("D. "), 
          -ends_with("Are there any other types of PPC in this journal? (Remember to check for web comments!)`"))
@@ -183,19 +183,10 @@ Let's check a few columns to see if they contain what we expect.
 
 ## Journals
 
-Check every row has an entry in `timestamps`.
-
-```{r}
-assert_that(
-  all(!is.na(d_journals$timestamps)),
-  msg = "Found missing timestamps"
-)
-```
-
 Check we have the expected coder initials in `coder_id` and convert column to factor.
 
 ```{r}
-expected_coders <- c("AW", "NM", "SV", "RTT", "TEH", "SS", "BC")
+expected_coders <- c("AW", "NM", "SV", "RTT", "TEH", "SS", "BC", "FINAL (TEH)")
 
 assert_that(
   all(d_journals$coder_id %in% expected_coders),
@@ -489,16 +480,95 @@ d_articles <- d_articles %>%
 ```
 # Resolve coding disagreements in journals data
 
-Note — its easier to do this in the original spreadsheet — for each journal I've added a new row with coder initials "FINAL (TEH)". If primary and secondary coding are aligned I just copied them into this row. If there are differences, I resolved them and entered the final decision into the new row.
+Note — its easier to do this in the original spreadsheet — for each journal I've added a new row with coder initials "FINAL (TEH)". If primary and secondary coding are aligned I just copied their coding into this row. If there were differences, I resolved them and entered the final decision into the new row.
+
+Make a tibble containing only the final coding for journals.\
 
 ```{r}
-d_journals %>%
-  group_by(journal) %>%
-  summarise(unique_responses = n_distinct(anyPPC)) %>% # get the number of unique responses to this Q (should be 1 if they match)
-  filter(unique_responses > 1)
-
-
+d_journals_final <- d_journals %>%
+  filter(coder_id == "FINAL (TEH)") %>% # select only the final coding
+  select(-coder_id, -timestamps) # drop the coder_id and timestamps columns
 ```
+# Journals data - exclusions
+
+
+```{r}
+d_journals_final_eligible <- d_journals_final %>%
+  filter(journal_empirical == "Yes") %>%
+  select(-journal_empirical)
+```
+
+
+# Journals data — reorganise
+
+Currently we have one row per journal, and sometimes more than one PPC per journal. To make analysis easier, let's switch the data frame from wide to long format (i.e., switch to one row per PPC instead of one row per journal).
+
+```{r}
+d_journals_final_eligible <- d_journals_final_eligible %>%
+  pivot_longer( # pivot to long format
+    cols = c(-journal,-sampleID, -anyPPC,-general_note),
+    names_to = c("PPC_type", ".value"), 
+    names_sep = "_ppc_"
+  )
+```
+
+# Journals data — Harmonization 
+
+# Harmonize length limits
+
+Journals used different units to report length limits (e.g., pages, lines, characters, words). We will convert these various units to words using the following approximations.
+
+```{r}
+pageToWord <- 500 # using our own recent papers as a guide, we estimate one page to be approximately 500 words. Thus, any limits stated with page units need to be multiplied by 500 to convert to words
+charToWord <- 6 # using our own recent papers as a guide, we estimate an average of 6 characters per word. Thus, any limits stated with character units need to be divided by 6 to convert to words
+linesToWord <- 10 # after inspecting articles published by journals that use line units, we estimate an average of 10 words per line. Thus any limits stated with line units need to be multiplied by ten to convert to words
+```
+
+We will also harmonize differences in data entry formatting, e.g., some coders used quotation marks, commas etc. Any qualitative limits will be designated as such.
+
+
+
+```{r}
+d_journals_final_eligible <- d_journals_final_eligible %>% 
+  mutate(length_harmonized = str_remove_all(length, pattern = '"'), #  remove any quotation marks
+         length_harmonized = str_remove(wordLimits, pattern = fixed("YES (copy and paste the limits in the 'other' section below), "))), # remove data entry question text
+```
+
+policyData <- policyData %>%
+  mutate(wordLimits = str_remove_all(wordLimits, pattern = '"'), #  remove any quotation marks
+         wordLimits = str_remove(wordLimits, pattern = fixed('YES (provide number of words/comments below), ')), # remove option text
+         wordLimits = case_when(
+           wordLimits == 'not more than 1000 words and 2 pages' ~ as.character(2*pageToWord),
+
+
+# Harmonize PPC names
+
+Currently the PPC names are copied verbatim from the journal websites but many of them are basically the same name with small grammatical differences (e.g., letters, letter to the editor etc.). For analysis, we need to harmonize these names.
+
+Firstly, we will harmonize names that are grammatically similar. We will then examine conceptual similarity and see if we can summarise the types into a few high level categories. A guiding assumption here is that we can capture most PPC types with three categories (based on personal experience and empirical data, Hardwicke et al. 2022):
+
+* letters to the editor - tend to be shorter articles
+* commentaries - tend to be longer articles
+* web comments - tend be to be short informal comments, usually appearing below articles on the journal website
+
+If PPCs we have identified clearly do not fit into these categories, we will categorize them as "OTHER". 
+
+Firstly, specify PPC names that we want to convert to different haromized names.
+
+```{r}
+commentaries <- c("Brief comment", "Brief Comment")
+letters <- c(
+  
+)
+web_comments <- c()
+```
+
+```{r}
+d_journals_final_eligible %>%
+  mutate(name_harmonized = )
+```
+
+In Emotion, one line seems to be about ten words. So 260 lines is 2600 words.
 
 # Final tests
 
