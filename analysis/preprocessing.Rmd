@@ -158,7 +158,7 @@ assert_that(
 )
 ```
 
-Some journal names were entered in the extraction form with incorrect formatting. Correct this below before running the test.
+Some journal names were entered in the extraction form with incorrect formatting. Correct this below.
 
 ```{r}
 d_journals <- d_journals %>% 
@@ -235,8 +235,28 @@ Now check that when `exclusion_primary` and `exclusion_secondary` are "EXCLUDE" 
 ```
 
 
+
 # Attach sample information to extracted data
 
+There is some information about the sample that isn't included in the extracted data files (sampleID, JIFs, Web of Science subject category, COPE status), so we need to load some of that information from the original sample files and attached it to the extracted data
+
+```{r}
+# list of journals in random sample
+journal_list_random <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-random.csv'), show_col_types = F) %>%
+  slice_head(n = 108) %>%
+  select(`Journal`)
+
+# list of journals in prominent sample
+journal_list_prominent <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv'), show_col_types = F) %>%
+  slice_head(n = 114) %>%
+  select('Journal' = `Journal name`)
+
+# list of all prominent journals (some not in sample)
+journal_list_prominent_all <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv'), show_col_types = F)
+
+# list of all random journals (some not in sample)
+journal_list_random_all <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-random.csv'), show_col_types = F)
+```
 ## Identify sample for journals
 
 The `d_journals` dataset does not identify whether journals were in the prominent sample, random sample, or both. So we need to get the sample ID retroactively using the files containing all journals included in the sample.
@@ -264,7 +284,101 @@ d_journals <- d_journals %>%
   select(-c(sample_journal_prominent, sample_journal_random, sample_journal_both, sample_journal_error))
 ```
 
-# Resolve coding disagreements in articles data
+## Identify JIFs for journals
+
+For the random journals we can find the JIFs in the prominent journal sample. Some journals do not have a JIF because they haven't been indexed long enough. We manually checked all of these journals on Journal Citation Reports to see if they had been assigned JIFs. One JIF needs to be added manually for the journal "Journal of Psychology and Theology". The 2021 JIF for this journal is .80.
+
+```{r}
+# first split d_journals into two data frames based on sample ID
+d_journals_prominent <- d_journals %>%
+  filter(sampleID %in% c('prominent', 'both'))
+
+d_journals_random <- d_journals %>%
+  filter(sampleID == 'random')
+
+# get JIF and WOS subject category for prominent journals
+journal_list_prominent_all <- journal_list_prominent_all %>%
+  select(journal = `Journal name`, `2021 JIF`, WOS_first_psych_category) # identify the columns we need from the sample data
+
+d_journals_prominent <- left_join(d_journals_prominent, journal_list_prominent_all, by = 'journal') # attach info to extracted data
+
+# get WOS subject category for random journals
+journal_list_random_all <- journal_list_random_all %>%
+  select(journal = Journal, WOS_first_psych_category) # identify the columns we need from the sample data
+
+d_journals_random <- left_join(d_journals_random, journal_list_random_all, by = 'journal') # attach info to extracted data
+
+# get JIFs for randomly selected journals by extracting them from the list of prominent journals (in the original download, not the sample)
+journal_list_prominent_all <- journal_list_prominent_all %>%
+  select(-WOS_first_psych_category) # we don't this column
+  
+d_journals_random <- left_join(d_journals_random, journal_list_prominent_all, by = 'journal') # attach info to extracted data
+
+d_journals_random <- d_journals_random %>%
+  mutate(`2021 JIF` = ifelse(
+    journal == "JOURNAL OF PSYCHOLOGY AND THEOLOGY", # for one journal,
+    .80, # manually add its JIF
+    `2021 JIF`)) # otherwise keep whatever is already in the JIF column
+
+# reunite d_journals_random and d_journals_prominent
+d_journals <- bind_rows(
+  d_journals_random %>% mutate(sampleID = "random"),
+  d_journals_prominent %>% mutate(sampleID = "prominent")
+)
+rm(d_journals_random)
+rm(d_journals_prominent)
+```
+
+#Add COPE status FROM PRACTICE CODING, does not alter main d_journals tibble
+```{r}
+# Load googlesheet data
+
+dj_prominent <- read_csv(here('data','raw', 'journals-prominent.csv')) %>% #loads csv of googlesheet data of prominent journals
+  slice_head(n = 114) %>%
+  select('journal' = 'journal_name', 'COPE' = 'COPE (T = member; F = not a member)' )
+
+dj_random <- read_csv(here('data','raw', 'journals-random.csv')) %>% #loads csv of googlesheet data of random journals
+  slice_head(n = 108) %>%
+  select('journal' = 'journal_name', 'COPE' = 'COPE (T = member; F = not a member)' )
+
+# Combine above CSVs to one tibble
+
+dj_cope <- bind_rows(dj_prominent, dj_random)
+
+# Identify duplicate rows
+duplicates <- duplicated(dj_cope)
+
+# Select the duplicate rows
+duplicate_rows <- dj_cope[duplicates, ]
+
+# Check if duplicate rows have the same COPE values for journals
+for (i in seq_len(nrow(duplicate_rows))) {
+  row <- duplicate_rows[i, ]
+  id <- row$ID
+  value <- row$Value
+  same_values <- all(duplicate_rows$Value[duplicate_rows$ID == id] == value)
+  
+  if (same_values) {
+    cat("Row", i, "with ID =", id, "has the same values in both columns.\n")
+  } else {
+    cat("Row", i, "with ID =", id, "has different values in both columns.\n")
+  }
+}
+
+#All 14 duplicated (both sample) journals had consistent COPE status, remove duplicates
+dj_cope <- distinct(dj_cope, journal, .keep_all = T)
+
+
+#join with main data tibble:
+d_primaryONLY <- left_join(d_primaryONLY, dj_cope, by = 'journal')
+
+```
+
+
+
+
+
+# Articles data — Resolve coding disagreements
 
 Find cases where primary and secondary coder disagreed on whether to exclude.
 
@@ -318,6 +432,7 @@ d_articles %>%
          exclusion_reason_primary != exclusion_reason_secondary) %>%
   select(article_id, sampleID, exclusion_reason_primary, exclusion_reason_secondary)
 ```
+
 We will resolve these by applying the exclusion criteria hierarchically. In other words, we use the highest level of exclusion criteria assigned by one of the two coders.
 1. Access
 2. English
@@ -557,103 +672,6 @@ d_journals_final_eligible <- d_journals_final_eligible %>%
     name %in% letters ~ "Letters",
     name %in% other ~ "Other"
   ))
-```
-
-# Journals data — add JIF and COPE
-
-There is some information about the sample that isn't included in the extracted data files (e.g., JIFs, Web of Science subject category), so we need to load some of that information from the original sample files.
-
-```{r}
-# list of journals in random sample
-journal_list_random <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-random.csv'), show_col_types = F) %>%
-  slice_head(n = 108) %>%
-  select(`Journal`)
-
-# list of journals in prominent sample
-journal_list_prominent <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv'), show_col_types = F) %>%
-  slice_head(n = 114) %>%
-  select('Journal' = `Journal name`)
-
-# list of all prominent journals (some not in sample)
-journal_list_prominent_all <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv'), show_col_types = F)
-
-# list of all random journals (some not in sample)
-journal_list_random_all <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-random.csv'), show_col_types = F)
-```
-
-## Identify JIFs for journals
-
-For the random journals we can find the JIFs in the prominent journal sample. Some journals do not have a JIF because they haven't been indexed long enough. We manually checked all of these journals. One JIF needed to be added manually for the journal "Journal of Psychology and Theology". The 2021 JIF for this journal is .80.
-
-```{r}
-d_journals_prominent <- d_journals %>%
-  filter(sampleID %in% c('prominent', 'both'))
-
-d_journals_random <- d_journals %>%
-  filter(sampleID == 'random')
-
-journal_list_prominent_all <- journal_list_prominent_all %>% 
-  select(journal = `Journal name`, `2021 JIF`, WOS_first_psych_category)
-
-d_journals_prominent <- left_join(d_journals_prominent, journal_list_prominent_all, by = 'journal')
-
-journal_list_random_all <- journal_list_random_all %>%
-  select(journal = Journal, WOS_first_psych_category)
-
-d_journals_random <- left_join(d_journals_random, journal_list_random_all, by = 'journal')
-
-journal_list_prominent_all <- journal_list_prominent_all %>%
-  select(-WOS_first_psych_category)
-  
-d_journals_random <- left_join(d_journals_random, journal_list_prominent_all, by = 'journal')
-
-tmp <- d_journals_random %>% filter(is.na(`2021 JIF`)) %>% distinct(journal, .keep_all = T)
-write_csv(tmp,here('data', 'prepareSample', 'journals', '02 - modified', 'we_need_jifs.csv'))
-```
-
-#Add COPE status FROM PRACTICE CODING, does not alter main d_journals tibble
-```{r}
-# Load googlesheet data
-
-dj_prominent <- read_csv(here('data','raw', 'journals-prominent.csv')) %>% #loads csv of googlesheet data of prominent journals
-  slice_head(n = 114) %>%
-  select('journal' = 'journal_name', 'COPE' = 'COPE (T = member; F = not a member)' )
-
-dj_random <- read_csv(here('data','raw', 'journals-random.csv')) %>% #loads csv of googlesheet data of random journals
-  slice_head(n = 108) %>%
-  select('journal' = 'journal_name', 'COPE' = 'COPE (T = member; F = not a member)' )
-
-# Combine above CSVs to one tibble
-
-dj_cope <- bind_rows(dj_prominent, dj_random)
-
-# Identify duplicate rows
-duplicates <- duplicated(dj_cope)
-
-# Select the duplicate rows
-duplicate_rows <- dj_cope[duplicates, ]
-
-# Check if duplicate rows have the same COPE values for journals
-for (i in seq_len(nrow(duplicate_rows))) {
-  row <- duplicate_rows[i, ]
-  id <- row$ID
-  value <- row$Value
-  same_values <- all(duplicate_rows$Value[duplicate_rows$ID == id] == value)
-  
-  if (same_values) {
-    cat("Row", i, "with ID =", id, "has the same values in both columns.\n")
-  } else {
-    cat("Row", i, "with ID =", id, "has different values in both columns.\n")
-  }
-}
-
-#All 14 duplicated (both sample) journals had consistent COPE status, remove duplicates
-dj_cope <- distinct(dj_cope, journal, .keep_all = T)
-
-
-#join with main data tibble:
-d_primaryONLY <- left_join(d_primaryONLY, dj_cope, by = 'journal')
-
 ```
 
 # Final tests
