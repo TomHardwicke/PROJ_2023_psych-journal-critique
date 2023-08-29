@@ -14,6 +14,15 @@ library(assertthat) # for testing
 source(here('analysis','functions.R')) # load custom functions
 ```
 
+# Convert raw data to primary data
+
+This will be moved to master script later.
+
+```{r}
+source(here('analysis','raw_to_primary.R')) # converts raw data to primary data
+```
+
+
 # Load data
 
 Load the extracted (i.e., manually coded) data.
@@ -31,7 +40,6 @@ Rename some columns for easier reference.
 d_journals <- d_journals %>%
   select(timestamps = Timestamp,
          coder_id = `Coder's Initials`,
-         pilot = `Are you piloting?`,
          journal = `Journal Name`,
          journal_empirical = `Does the journal publish empirical research?`,
          anyPPC = `Check the article types page and check for web comments — does the journal offer any type of PPC?`,
