@@ -559,7 +559,7 @@ d_journals_final_eligible <- d_journals_final_eligible %>%
 
 # Journals data — Harmonization 
 
-# Harmonize length limits
+## Harmonize length limits
 
 Journals used different units to report length limits (e.g., pages, lines, characters, words). We will convert these various units to words using the following approximations.
 
@@ -571,22 +571,65 @@ linesToWord <- 10 # after inspecting articles published by journals that use lin
 
 We will also harmonize differences in data entry formatting, e.g., some coders used quotation marks, commas etc. Any qualitative limits will be designated as such.
 
-
-
 ```{r}
 d_journals_final_eligible <- d_journals_final_eligible %>% 
   mutate(length_harmonized = str_remove_all(length, pattern = '"'), #  remove any quotation marks
-         length_harmonized = str_remove(wordLimits, pattern = fixed("YES (copy and paste the limits in the 'other' section below), "))), # remove data entry question text
+         length_harmonized = str_remove(length_harmonized, pattern = fixed("YES (copy and paste the limits in the 'other' section below), ")),# remove data entry question text
+         length_harmonized = case_when(
+           length_harmonized == "1,000 words" ~ "1000",
+           length_harmonized == "1,500 words (one figure and/or one table allowed within word count)" ~ "1500",
+           length_harmonized == "1000 words" ~ "1000",
+           length_harmonized == "16 pages" ~ as.character(16*pageToWord),
+           length_harmonized == "2000 words" ~ "2000",
+           length_harmonized == "265 lines of text including references" ~ as.character(265*linesToWord),
+           length_harmonized == "3500 words (title page and references included)" ~ "3500",
+           length_harmonized == "400 words" ~ "400",
+           length_harmonized == "5 pages, including abstract, references, tables, and figures." ~ as.character(5*pageToWord),
+           length_harmonized == "500 words" ~ "500",
+           length_harmonized == "600-800 words" ~ "800",
+           length_harmonized == "750 words" ~ "750",
+           length_harmonized == "Approx. 1,000 words" ~ "1000",
+           length_harmonized == "approximately 1,000 words" ~ "1000",
+           length_harmonized == "as concise as possible, and ideally not exceed 1,200 words" ~ "1200",
+           length_harmonized == "at maximum half the length of the target article." ~ "Qualitative",
+           length_harmonized == "Maximum length: 1100 words." ~ "1100",
+           length_harmonized == "short" ~ "Qualitative",
+           length_harmonized == "up to 2,000 words counting 500 words per table and figure" ~ "2000",
+           TRUE ~ length_harmonized
+         )) 
 ```
 
-policyData <- policyData %>%
-  mutate(wordLimits = str_remove_all(wordLimits, pattern = '"'), #  remove any quotation marks
-         wordLimits = str_remove(wordLimits, pattern = fixed('YES (provide number of words/comments below), ')), # remove option text
-         wordLimits = case_when(
-           wordLimits == 'not more than 1000 words and 2 pages' ~ as.character(2*pageToWord),
+## Harmonize time-to-submit limits
 
+Journals used different units to report time limits (e.g., weeks, months, years). We will convert these various units to weeks using the following approximations.
 
-# Harmonize PPC names
+```{r}
+monthToWeek <- 4.35 # number to multiply months by to get weeks
+yearToWeek <- 52 # number to multiply years by to get weeks
+```
+
+We will also harmonize differences in data entry formatting, e.g., some coders used quotation marks, commas etc. Any qualitative limits will be designated as such.
+
+```{r}
+d_journals_final_eligible <- d_journals_final_eligible %>% 
+  mutate(time_harmonized = str_remove_all(time, pattern = '"'), #  remove any quotation marks
+         time_harmonized = str_remove(time_harmonized, pattern = fixed("YES (provide detail of time limits below), ")),# remove data entry question text
+         time_harmonized = case_when(
+           time_harmonized == "3 months" ~ as.character(3*monthToWeek),
+           time_harmonized == "6 months" ~ as.character(6*monthToWeek),
+           time_harmonized == "9 months" ~ as.character(9*monthToWeek),
+           time_harmonized == "Draft proposed comments will be due on a tight time- line (i.e., 2– 4 weeks after solicitation), to be determined by the Editor." ~ "4",
+           time_harmonized == "he Commentary mechanism is most effective when used to address a contemporary publication" ~ "Qualitative",
+           time_harmonized == "Matters Arising articles are interesting and timely scientific or academic comments" ~ "Qualitative",
+           time_harmonized == "recent" ~ "Qualitative",
+           time_harmonized == "recently published" ~ "Qualitative",
+           time_harmonized == "UNCLEAR (provide detail in the 'other' section below), recently published" ~ "Qualitative",
+           time_harmonized == "YES (copy and paste the limits in the 'other' section below), 1-year (except for a test of replication)" ~ as.character(1*yearToWeek),
+           TRUE ~ time_harmonized
+         )) 
+```
+
+## Harmonize PPC names
 
 Currently the PPC names are copied verbatim from the journal websites but many of them are basically the same name with small grammatical differences (e.g., letters, letter to the editor etc.). For analysis, we need to harmonize these names.
 
