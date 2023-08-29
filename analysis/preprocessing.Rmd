@@ -342,10 +342,10 @@ d_articles <- d_articles %>%
 
 Note — its easier to do this in the original spreadsheet — for each journal I've added a new row with coder initials "FINAL (TEH)". If primary and secondary coding are aligned I just copied their coding into this row. If there were differences, I resolved them and entered the final decision into the new row.
 
-Make a tibble containing only the final coding for journals.
+Retain only the final coding for journals.
 
 ```{r}
-d_journals_final <- d_journals %>%
+d_journals <- d_journals %>%
   filter(coder_id == "FINAL (TEH)") %>% # select only the final coding
   select(-coder_id, -timestamps) # drop the coder_id and timestamps columns
 ```
@@ -355,7 +355,7 @@ d_journals_final <- d_journals %>%
 Currently we have one row per journal, and sometimes more than one PPC per journal. To make analysis easier, let's switch the data frame from wide to long format (i.e., switch to one row per PPC instead of one row per journal).
 
 ```{r}
-d_journals_final <- d_journals_final %>%
+d_journals <- d_journals %>%
   pivot_longer( # pivot to long format
     cols = c(-journal,-journal_empirical,-sample_id,-anyPPC,-general_note),
     names_to = c("PPC_type", ".value"), 
@@ -378,7 +378,7 @@ linesToWord <- 10 # after inspecting articles published by journals that use lin
 We will also harmonize differences in data entry formatting, e.g., some coders used quotation marks, commas etc. Any qualitative limits will be designated as such.
 
 ```{r}
-d_journals_final <- d_journals_final %>% 
+d_journals <- d_journals %>% 
   mutate(length_harmonized = str_remove_all(length, pattern = '"'), #  remove any quotation marks
          length_harmonized = str_remove(length_harmonized, pattern = fixed("YES (copy and paste the limits in the 'other' section below), ")),# remove data entry question text
          length_harmonized = case_when(
@@ -417,7 +417,7 @@ yearToWeek <- 52 # number to multiply years by to get weeks
 We will also harmonize differences in data entry formatting, e.g., some coders used quotation marks, commas etc. Any qualitative limits will be designated as such.
 
 ```{r}
-d_journals_final_eligible <- d_journals_final_eligible %>% 
+d_journals <- d_journals %>% 
   mutate(time_harmonized = str_remove_all(time, pattern = '"'), #  remove any quotation marks
          time_harmonized = str_remove(time_harmonized, pattern = fixed("YES (provide detail of time limits below), ")),# remove data entry question text
          time_harmonized = case_when(
@@ -440,7 +440,7 @@ d_journals_final_eligible <- d_journals_final_eligible %>%
 For reference limits we need to harmonize differences in data entry formatting. Additionally, when references are included in the overall length limit, we will re-code these as "NOT STATED", because no specific reference limit has been stated.
 
 ```{r}
-d_journals_final_eligible <- d_journals_final_eligible %>% 
+d_journals <- d_journals %>% 
   mutate(ref_harmonized = str_remove_all(ref, pattern = '"'), #  remove any quotation marks
          ref_harmonized = str_remove(ref_harmonized, pattern = fixed("YES (provide number of references below), ")),# remove data entry question text
          ref_harmonized = str_remove(ref_harmonized, pattern = fixed("YES (copy and paste the limits in the 'other' section below), ")),# remove data entry question text
@@ -460,7 +460,7 @@ d_journals_final_eligible <- d_journals_final_eligible %>%
 For PPC peer review policy we need to harmonize differences in data entry formatting. 
 
 ```{r}
-d_journals_final_eligible <- d_journals_final_eligible %>% 
+d_journals <- d_journals %>% 
   mutate(review_harmonized = case_when(
            review == "NO, This correspondence is published at the discretion of the Editor-in-Chief and the Associate Editors" ~ "NO",
            review == "NOT STATED, The guidelines discuss peer review, but it appears that this discussion isn't relevant to commentary articles." ~ "NOT STATED",
@@ -491,15 +491,42 @@ other <- c("Verification reports")
 ```
 
 ```{r}
-d_journals_final_eligible <- d_journals_final_eligible %>%
+d_journals <- d_journals %>%
   mutate(name_harmonized = case_when(
     name %in% commentaries ~ "Commentary",
     name %in% letters ~ "Letters",
     name %in% other ~ "Other"
   ))
 ```
+# Reclassify and reformat
+
+Reclassify some values like "Yes" and "No" into logicals, format some columns, and select only columns we need for data analysis.
+
+```{r}
+d_journals <- d_journals %>%
+  mutate(sample_id = factor(sample_id),
+         journal_name = factor(journal),
+         is_empirical = fct_recode(journal_empirical, T = "Yes", F = "No"),
+         has_ppc = fct_recode(anyPPC, 
+                             "ARCHIVE" = "ARCHIVE ONLY", 
+                             "NO IMPLICIT" = "NO (there are no PPC options)",
+                             "NO EXPLICIT" = "NO (explicit statement that PPC is not accepted)")) %>%
+  select(sample_id, journal_name, is_empirical, has_ppc, ppc_type = PPC_type, ppc_name = name_harmonized, ppc_description = description, ppc_length = length_harmonized, ppc_time = time_harmonized, ppc_ref = ref_harmonized, ppc_review = review_harmonized)
+```
+
+```{r}
+d_articles <- d_articles %>%
+  mutate(sample_id = factor(sample_id),
+         article_id = factor(article_id),
+         exclude = factor(exclusion_final),
+         exclude_reason = factor(exclusion_reason_final),
+         ppc_linked = fct_recode(ppc_linked_final, T = "NO", F = "YES")) %>%
+  select(sample_id, article_id, exclude, exclude_reason, ppc_linked)
+```
 
 # Final tests
+
+We'll run some final tests in this section to make sure we have what we expect in each column.
 
 Now check that `journal_empirical` contains only 'Yes' or 'No'. When we first run the test we get unexpected values.
 
@@ -530,4 +557,14 @@ Now check that when `exclusion_primary` and `exclusion_secondary` are "EXCLUDE" 
 # 
 # assert_that(, msg = "Found unexpected value in exclusion reason column when it should be NA")
 ```
+
+# Export files to processed data folder
+
+The data is now ready for analysis! Let's export it to the 'processed' data folder.
+
+```{r}
+write_csv(d_articles, here('data','processed','d_articles.csv'))
+write_csv(d_journals, here('data','processed','d_journals.csv'))
+```
+
 
