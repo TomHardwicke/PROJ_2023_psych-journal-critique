@@ -361,11 +361,11 @@ write_csv(tmp,here('data', 'prepareSample', 'journals', '02 - modified', 'we_nee
 ```{r}
 # Load googlesheet data
 
-dj_prominent <- read_csv(here('data','raw', 'journalList_PROMINENT.csv')) %>% #loads csv of googlesheet data of prominent journals
+dj_prominent <- read_csv(here('data','raw', 'journals-prominent.csv')) %>% #loads csv of googlesheet data of prominent journals
   slice_head(n = 114) %>%
   select('journal' = 'journal_name', 'COPE' = 'COPE (T = member; F = not a member)' )
 
-dj_random <- read_csv(here('data','raw', 'journalList_RANDOM.csv')) %>% #loads csv of googlesheet data of random journals
+dj_random <- read_csv(here('data','raw', 'journals-random.csv')) %>% #loads csv of googlesheet data of random journals
   slice_head(n = 108) %>%
   select('journal' = 'journal_name', 'COPE' = 'COPE (T = member; F = not a member)' )
 
