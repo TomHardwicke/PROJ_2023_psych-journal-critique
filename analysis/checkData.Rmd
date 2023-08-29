@@ -31,25 +31,7 @@ d_articles_prominent <- read_csv(here('data','raw','articles (prominent) - Sheet
 d_journals <- read_csv(here('data','raw','Data Extraction Form (policy) (Responses) - Form Responses 1.csv'), show_col_types = F)
 ```
 
-There is some information about the sample that isn't included in the extracted data files (e.g., JIFs, Web of Science subject category), so we need to load some of that information from the original sample files.
 
-```{r}
-# list of journals in random sample
-journal_list_random <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-random.csv'), show_col_types = F) %>%
-  slice_head(n = 108) %>%
-  select(`Journal`)
-
-# list of journals in prominent sample
-journal_list_prominent <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv'), show_col_types = F) %>%
-  slice_head(n = 114) %>%
-  select('Journal' = `Journal name`)
-
-# list of all prominent journals (some not in sample)
-journal_list_prominent_all <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv'), show_col_types = F)
-
-# list of all random journals (some not in sample)
-journal_list_random_all <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-random.csv'), show_col_types = F)
-```
 
 # Rename colums 
 
@@ -580,7 +562,6 @@ d_journals_final_eligible <- d_journals_final_eligible %>%
          )) 
 ```
 
-
 ## Harmonize peer review policies
 
 For PPC peer review policy we need to harmonize differences in data entry formatting. 
@@ -588,10 +569,10 @@ For PPC peer review policy we need to harmonize differences in data entry format
 ```{r}
 d_journals_final_eligible <- d_journals_final_eligible %>% 
   mutate(review_harmonized = case_when(
-           review_harmonized == "NO, This correspondence is published at the discretion of the Editor-in-Chief and the Associate Editors" ~ "NO",
-           review_harmonized == "NOT STATED, The guidelines discuss peer review, but it appears that this discussion isn't relevant to commentary articles." ~ "NOT STATED",
-           review_harmonized == "UNCLEAR (provide detail in the 'other' section below), It 'may' be sent for independent review: 'Matters Arising submissions that meet the journal’s criteria are sent to the authors of the original paper for a formal response. The comments and formal response may then be sent to independent referees.'" ~ "YES",
-           TRUE ~ review_harmonized
+           review == "NO, This correspondence is published at the discretion of the Editor-in-Chief and the Associate Editors" ~ "NO",
+           review == "NOT STATED, The guidelines discuss peer review, but it appears that this discussion isn't relevant to commentary articles." ~ "NOT STATED",
+           review == "UNCLEAR (provide detail in the 'other' section below), It 'may' be sent for independent review: 'Matters Arising submissions that meet the journal’s criteria are sent to the authors of the original paper for a formal response. The comments and formal response may then be sent to independent referees.'" ~ "YES",
+           TRUE ~ review
          )) 
 ```
 
@@ -626,6 +607,26 @@ d_journals_final_eligible <- d_journals_final_eligible %>%
 ```
 
 # Journals data — add JIF and COPE
+
+There is some information about the sample that isn't included in the extracted data files (e.g., JIFs, Web of Science subject category), so we need to load some of that information from the original sample files.
+
+```{r}
+# list of journals in random sample
+journal_list_random <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-random.csv'), show_col_types = F) %>%
+  slice_head(n = 108) %>%
+  select(`Journal`)
+
+# list of journals in prominent sample
+journal_list_prominent <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv'), show_col_types = F) %>%
+  slice_head(n = 114) %>%
+  select('Journal' = `Journal name`)
+
+# list of all prominent journals (some not in sample)
+journal_list_prominent_all <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv'), show_col_types = F)
+
+# list of all random journals (some not in sample)
+journal_list_random_all <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-random.csv'), show_col_types = F)
+```
 
 ## Identify JIFs for journals
 
