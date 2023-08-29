@@ -19,19 +19,9 @@ library(assertthat) # for testing
 Load the extracted (i.e., manually coded) data.
 
 ```{r}
-# article data (random)
-d_articles_random <- read_csv(here('data','raw','articles (random) - Sheet1.csv'), show_col_types = F) %>%
-  filter(!is.na(`primary coder initials`) & !is.na(`secondary coder initials`)) # we only need articles that were coded by someone
-
-# article data (prominent)
-d_articles_prominent <- read_csv(here('data','raw','articles (prominent) - Sheet1.csv'), show_col_types = F)  %>%
-  filter(!is.na(`primary coder initials`) & !is.na(`secondary coder initials`)) # we only need articles that were coded by someone
-
-# journal data (random and prominent sample)
-d_journals <- read_csv(here('data','raw','Data Extraction Form (policy) (Responses) - Form Responses 1.csv'), show_col_types = F)
+d_articles <- read_csv(here('data','primary','articles.csv'), show_col_types = F) # article data 
+d_journals <- read_csv(here('data','primary','journals.csv'), show_col_types = F) # journal data 
 ```
-
-
 
 # Rename colums 
 
@@ -70,22 +60,7 @@ d_journals <- d_journals %>%
          -starts_with("D. "), 
          -ends_with("Are there any other types of PPC in this journal? (Remember to check for web comments!)`"))
 
-d_articles_random <- d_articles_random %>%
-  select(
-    article_id = `article id`,
-    coder_id_primary = `primary coder initials`,
-    coder_id_secondary = `secondary coder initials`,
-    exclusion_primary = `1_exclusion`,
-    exclusion_reason_primary = `1_exclusionReason`,
-    ppc_linked_primary = `1_Is article linked to PPC`,
-    notes_primary = `1_Additional notes`,
-    exclusion_secondary = `2_exclusion`,
-    exclusion_reason_secondary = `2_exclusionReason`,
-    ppc_linked_secondary = `2_Is article linked to PPC`,
-    notes_secondary = `2_Additional notes`
-  )
-
-d_articles_prominent <- d_articles_prominent %>%
+d_articles <- d_articles %>%
   select(
     article_id = `article id`,
     coder_id_primary = `primary coder initials`,
@@ -187,7 +162,7 @@ assert_that(
 )
 ```
 
-Check every row has a `journal` that appears in the original random or prominent sample lists. We initially get an error for this test because some journal names were entered in the extraction form with incorrect formatting. Correct this below before running the test.
+Some journal names were entered in the extraction form with incorrect formatting. Correct this below before running the test.
 
 ```{r}
 d_journals <- d_journals %>% 
@@ -195,27 +170,9 @@ d_journals <- d_journals %>%
                               "MEMORY & COGNITION" = "Memory & Cognition","JOURNAL OF COUPLE & RELATIONSHIP THERAPY-INNOVATIONS IN CLINICAL AND EDUCATIONAL INTERVENTIONS" = "Journal of Couple & Relationship Therapy"))
 ```
 
-```{r}
-assert_that(
-  all(d_journals$journal %in% c(journal_list_prominent$Journal, journal_list_random$Journal)),
-  msg = "Found journal names that do not match sample"
-)
-```
-
-That fixed the problem, now all journal names in the extracted data match journal names in the sample files.
-
 We can't run any more useful tests at this point because in many columns coders have used entered free text to explain cases that were unclear. So we will run tests again later after coding discrepancies have been resolved.
 
 ## Articles
-
-Firstly let's join the prominent and random articles together (with a new column identifying which sample they are in) to streamline some testing.
-
-```{r}
-d_articles <- bind_rows(
-  d_articles_random %>% mutate(sampleID = "random"),
-  d_articles_prominent %>% mutate(sampleID = "prominent")
-)
-```
 
 Check every row has an entry in `article_id`.
 
