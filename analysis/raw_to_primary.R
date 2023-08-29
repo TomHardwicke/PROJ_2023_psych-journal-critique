@@ -19,7 +19,9 @@ d_articles <- bind_rows(
 )
 
 # load journal data (random and prominent sample)
-d_journals <- read_csv(here('data','raw','Data Extraction Form (policy) (Responses) - Form Responses 1.csv'), show_col_types = F)
+d_journals <- read_csv(here('data','raw','Data Extraction Form (policy) (Responses) - Form Responses 1.csv'), show_col_types = F) %>%
+  filter(`Are you piloting?` == "No") %>% # remove pilot journals
+  select(-`Are you piloting?`)
 
 # save as primary data
 write_csv(d_journals, here('data','primary','journals.csv'))
