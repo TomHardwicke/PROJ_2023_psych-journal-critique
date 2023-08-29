@@ -581,23 +581,17 @@ d_journals_final_eligible <- d_journals_final_eligible %>%
 ```
 
 
-## Harmonize peer review polic
+## Harmonize peer review policies
 
 For PPC peer review policy we need to harmonize differences in data entry formatting. 
 
 ```{r}
 d_journals_final_eligible <- d_journals_final_eligible %>% 
-  mutate(review_harmonized = str_remove_all(review, pattern = '"'), #  remove any quotation marks
-         ref_harmonized = str_remove(ref_harmonized, pattern = fixed("YES (provide number of references below), ")),# remove data entry question text
-         ref_harmonized = str_remove(ref_harmonized, pattern = fixed("YES (copy and paste the limits in the 'other' section below), ")),# remove data entry question text
-         ref_harmonized = case_when(
-           ref_harmonized == "20 not hard-and-fast limits" ~ "20",
-           ref_harmonized == "265 lines of text including references" ~ "NOT STATED",
-           ref_harmonized == "contributions may have up to 15 references" ~ "15",
-           ref_harmonized == "Included in 16 page overall limit" ~ "NOT STATED",
-           ref_harmonized == "No more than 5 references" ~ "5",
-           ref_harmonized == "overall limit is 265 lines of text including references" ~ "NOT STATED",
-           TRUE ~ ref_harmonized
+  mutate(review_harmonized = case_when(
+           review_harmonized == "NO, This correspondence is published at the discretion of the Editor-in-Chief and the Associate Editors" ~ "NO",
+           review_harmonized == "NOT STATED, The guidelines discuss peer review, but it appears that this discussion isn't relevant to commentary articles." ~ "NOT STATED",
+           review_harmonized == "UNCLEAR (provide detail in the 'other' section below), It 'may' be sent for independent review: 'Matters Arising submissions that meet the journal’s criteria are sent to the authors of the original paper for a formal response. The comments and formal response may then be sent to independent referees.'" ~ "YES",
+           TRUE ~ review_harmonized
          )) 
 ```
 
