@@ -109,10 +109,7 @@ d_journals_random <- d_journals_random %>%
     jif)) # otherwise keep whatever is already in the JIF column
 
 # reunite d_journals_random and d_journals_prominent
-d_journals <- bind_rows(
-  d_journals_random %>% mutate(sample_id = "random"),
-  d_journals_prominent %>% mutate(sample_id = "prominent")
-)
+d_journals <- bind_rows(d_journals_random,d_journals_prominent)
 
 # save as primary data
 write_csv(d_journals, here('data','primary','journals.csv'))
