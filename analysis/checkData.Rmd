@@ -57,7 +57,7 @@ d_journals <- d_journals %>%
          B_ppc_note = `B. Anything additional, unusual, or interesting to note?`,
          C_ppc_note = `C. Anything additional, unusual, or interesting to note?`,
          general_note = `Anything additional, unusual, or interesting to note?`,
-         -starts_with("D. "), 
+         -starts_with("D. "),
          -ends_with("Are there any other types of PPC in this journal? (Remember to check for web comments!)`"))
 
 d_articles <- d_articles %>%
@@ -74,18 +74,6 @@ d_articles <- d_articles %>%
     ppc_linked_secondary = `2_Is article linked to PPC`,
     notes_secondary = `2_Additional notes`
   )
-```
-
-# Remove non-relevant rows
-
-## Remove pilot journals
-
-Removing all rows that were entered during piloting and therefore not part of the main sample.
-
-```{r}
-d_journals <- d_journals %>%
-  filter(pilot == "No") %>%
-  select(-pilot)
 ```
 
 ## Remove erroneous rows
