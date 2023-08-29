@@ -11,7 +11,7 @@ library(tidyverse) # for various tasks including munging and plotting
 library(here) # for easier file path access
 library(tidylog) # for inline programming reporting
 library(assertthat) # for testing
-`%notin%` <- Negate(`%in%`) # for identifying when values are not in a vector of expected values
+source(here('analysis','functions.R')) # load custom functions
 ```
 
 # Load data
