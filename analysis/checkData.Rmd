@@ -357,6 +357,51 @@ tmp <- d_journals_random %>% filter(is.na(`2021 JIF`)) %>% distinct(journal, .ke
 write_csv(tmp,here('data', 'prepareSample', 'journals', '02 - modified', 'we_need_jifs.csv'))
 ```
 
+#Add COPE status FROM PRACTICE CODING, does not alter main d_journals tibble
+```{r}
+# Load googlesheet data
+
+dj_prominent <- read_csv(here('data','raw', 'journals-prominent.csv')) %>% #loads csv of googlesheet data of prominent journals
+  slice_head(n = 114) %>%
+  select('journal' = 'journal_name', 'COPE' = 'COPE (T = member; F = not a member)' )
+
+dj_random <- read_csv(here('data','raw', 'journals-random.csv')) %>% #loads csv of googlesheet data of random journals
+  slice_head(n = 108) %>%
+  select('journal' = 'journal_name', 'COPE' = 'COPE (T = member; F = not a member)' )
+
+# Combine above CSVs to one tibble
+
+dj_cope <- bind_rows(dj_prominent, dj_random)
+
+# Identify duplicate rows
+duplicates <- duplicated(dj_cope)
+
+# Select the duplicate rows
+duplicate_rows <- dj_cope[duplicates, ]
+
+# Check if duplicate rows have the same COPE values for journals
+for (i in seq_len(nrow(duplicate_rows))) {
+  row <- duplicate_rows[i, ]
+  id <- row$ID
+  value <- row$Value
+  same_values <- all(duplicate_rows$Value[duplicate_rows$ID == id] == value)
+  
+  if (same_values) {
+    cat("Row", i, "with ID =", id, "has the same values in both columns.\n")
+  } else {
+    cat("Row", i, "with ID =", id, "has different values in both columns.\n")
+  }
+}
+
+#All 14 duplicated (both sample) journals had consistent COPE status, remove duplicates
+dj_cope <- distinct(dj_cope, journal, .keep_all = T)
+
+
+#join with main data tibble:
+d_primaryONLY <- left_join(d_primaryONLY, dj_cope, by = 'journal')
+
+```
+
 # Resolve coding disagreements in articles data
 
 Find cases where primary and secondary coder disagreed on whether to exclude.
