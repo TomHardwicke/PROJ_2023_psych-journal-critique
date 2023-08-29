@@ -584,6 +584,26 @@ d_journals_final_eligible <- d_journals_final_eligible %>%
          )) 
 ```
 
+## Harmonize reference limits
+
+For reference limits we need to harmonize differences in data entry formatting. Additionally, when references are included in the overall length limit, we will re-code these as "NOT STATED", because no specific reference limit has been stated.
+
+```{r}
+d_journals_final_eligible <- d_journals_final_eligible %>% 
+  mutate(ref_harmonized = str_remove_all(ref, pattern = '"'), #  remove any quotation marks
+         ref_harmonized = str_remove(ref_harmonized, pattern = fixed("YES (provide number of references below), ")),# remove data entry question text
+         ref_harmonized = str_remove(ref_harmonized, pattern = fixed("YES (copy and paste the limits in the 'other' section below), ")),# remove data entry question text
+         ref_harmonized = case_when(
+           ref_harmonized == "20 not hard-and-fast limits" ~ "20",
+           ref_harmonized == "265 lines of text including references" ~ "NOT STATED",
+           ref_harmonized == "contributions may have up to 15 references" ~ "15",
+           ref_harmonized == "Included in 16 page overall limit" ~ "NOT STATED",
+           ref_harmonized == "No more than 5 references" ~ "5",
+           ref_harmonized == "overall limit is 265 lines of text including references" ~ "NOT STATED",
+           TRUE ~ ref_harmonized
+         )) 
+```
+
 ## Harmonize PPC names
 
 Currently the PPC names are copied verbatim from the journal websites but many of them are basically the same name with small grammatical differences (e.g., letters, letter to the editor etc.). For analysis, we need to harmonize these names.
@@ -596,22 +616,23 @@ Firstly, we will harmonize names that are grammatically similar. We will then ex
 
 If PPCs we have identified clearly do not fit into these categories, we will categorize them as "OTHER". 
 
-Firstly, specify PPC names that we want to convert to different haromized names.
+Firstly, specify PPC names that we want to convert to different harmonized names.
 
 ```{r}
-commentaries <- c("Brief comment", "Brief Comment")
-letters <- c(
-  
-)
-web_comments <- c()
+commentaries <- c("Brief comment", "Brief Comment", "commentaries", "Commentaries", "Commentary", "Comments", "Matters Arising", "Observations & Commentaries", "Open peer commentaries", "Short Communications and Commentaries", "Short Research Notes", "Text review")
+letters <- c("Letter", "Letters", "Letter to the editor", "Letters to the editor", "letters to the editor", "Letters to the Editor.", "letters to the editors", "Letters to the Editors")
+# web_comments <- c()
+other <- c("Verification reports")
 ```
 
 ```{r}
-d_journals_final_eligible %>%
-  mutate(name_harmonized = )
+d_journals_final_eligible <- d_journals_final_eligible %>%
+  mutate(name_harmonized = case_when(
+    name %in% commentaries ~ "Commentary",
+    name %in% letters ~ "Letters",
+    name %in% other ~ "Other"
+  ))
 ```
-
-In Emotion, one line seems to be about ten words. So 260 lines is 2600 words.
 
 # Final tests
 
