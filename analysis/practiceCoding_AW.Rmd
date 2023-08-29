@@ -1,0 +1,86 @@
+---
+title: "Results from Primary Coding"
+author: "Annie Whamond"
+date: "2023-08-28"
+output: html_document
+---
+
+#Prelim results and visualisations for d_journals
+ 
+```{r}
+#Genarate table to assess anyPPC
+
+d_primaryONLY <- d_journals %>%
+  filter(coder_id == "AW" | coder_id == "NM") %>%
+  filter(journal_empirical == "Yes") %>%
+  group_by(journal) %>%
+  distinct(journal, .keep_all = TRUE)
+
+ table(d_primaryONLY$sampleID, d_primaryONLY$anyPPC)
+ 
+ table(d_primaryONLY$sampleID)
+```
+
+#Look at limitations for anyPPC = YES
+```{r}
+
+ d_PPConly <- d_primaryONLY %>%
+   filter(anyPPC == "YES")
+
+#Look at stated length limits
+PPC_length <- d_PPConly %>%
+  filter(ppc_length_A != "NO") %>%
+  filter(ppc_length_A != "NOT STATED")
+
+
+table(PPC_length$ppc_length_A)
+table(PPC_length$ppc_length_B)
+
+#Look at stated time limits
+
+PPC_time <- d_PPConly %>%
+  filter(ppc_time_A != "NOT STATED")
+
+table(PPC_time$ppc_time_A)
+  
+```
+
+#Add COPE status
+```{r}
+dj_random <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-random.csv'), show_col_types = F) %>%
+  slice_head(n = 108) %>%
+  select(`Journal`, 'COPE' = 'COPE (T = member; F = not a member)')
+
+
+dj_prominent <- read_csv(here('data','prepareSample','journals', '03 - final', 'journals-prominent.csv'), show_col_types = F) %>%
+  slice_head(n = 114) %>%
+  select('Journal' = `Journal name`, 'COPE' = 'COPE (T = member; F = not a member)' )
+
+dj_cope <- left_join()
+
+#Code from checkData.RMD for extracting JIFs
+d_journals_prominent <- left_join(d_journals_prominent, journal_list_prominent_all, by = 'journal')
+
+journal_list_random_all <- journal_list_random_all %>%
+  select(journal = Journal, WOS_first_psych_category)
+
+d_journals_random <- left_join(d_journals_random, journal_list_random_all, by = 'journal')
+
+journal_list_prominent_all <- journal_list_prominent_all %>%
+  select(-WOS_first_psych_category)
+  
+d_journals_random <- left_join(d_journals_random, journal_list_prominent_all, by = 'journal')
+
+tmp <- d_journals_random %>% filter(is.na(`2021 JIF`)) %>% distinct(journal, .keep_all = T)
+write_csv(tmp,here('data', 'prepareSample', 'journals', '02 - modified', 'we_need_jifs.csv'))
+
+
+
+```
+
+ 
+ 
+
+   
+ 
+ 
