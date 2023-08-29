@@ -132,11 +132,11 @@ d_journals <- d_journals %>%
   filter(!(journal == "PSYCHOLOGICAL MEDICINE" & timestamps == "8/6/2023 9:49:10"))
 ```
 
-# Perform initial tests and fix issues
+# Perform initial tests and fix some issues
 
 Let's check a few columns to see if they contain what we expect.
 
-## Journals
+## Journal data initial tests
 
 Check we have the expected coder initials in `coder_id` and convert column to factor.
 
@@ -162,7 +162,7 @@ assert_that(
 
 We can't run any more useful tests at this point because in many columns coders have used entered free text to explain cases that were unclear. So we will run tests again later after coding discrepancies have been resolved.
 
-## Articles
+## Articles data initial tests
 
 Check every row has an entry in `article_id`.
 
@@ -209,37 +209,14 @@ assert_that(
 )
 ```
 
-Now check that when `exclusion_primary` and `exclusion_secondary` are "EXCLUDE" then we have reasons in the reason columns. When they are "RETAIN" the reason columns should be NA.
-
-```{r}
-# primary_exclusions <- d_articles %>% 
-#   count(exclusion_primary, exclusion_reason_primary) %>%
-#   mutate(expected_values = case_when(
-#     exclusion_primary == "RETAIN" & is.na(exclusion_reason_primary) ~ T,
-#     exclusion_primary == "EXCLUDE" & exclusion_reason_primary %in% c("NO ACCESS", "NON-ENGLISH", "NOT EMPIRICAL", "RETRACTED", "IS ITSELF PPC", "OTHER") ~ T,
-#     TRUE ~ "criteria not met"
-#   ))
-# 
-# secondary_exclusions <- d_articles %>% 
-#   count(exclusion_secondary, exclusion_reason_secondary) %>%
-#   
-# 
-# 
-# assert_that(, msg = "Found unexpected value in exclusion reason column when it should be NA")
-```
-
-
-
-
-
-
 # Articles data — Resolve coding disagreements
 
 Find cases where primary and secondary coder disagreed on whether to exclude.
 
 ```{r}
-d_articles %>%
-  filter(exclusion_primary != exclusion_secondary)
+# NOT RUN — used to identify cases where primary and secondary coder disagreed on whether to exclude.
+# d_articles %>%
+#   filter(exclusion_primary != exclusion_secondary)
 ```
 
 Following protocol, coding discrepancies are resolved by TEH. We now create an `exclusion_final` column which represents the resolved coding. TEH decides to either go with the primary or secondary coder's verdict. For other articles, we use the primary coder's verdict (which is the same as the secondary coder).
@@ -282,10 +259,10 @@ Find cases where primary and secondary coder disagreed on why to exclude.
 
 ```{r}
 # we've already dealt with cases where the decision to exclude differs, so we're not looking only at cases where the decision to exclude matches, but the reason for exclusion differs
-d_articles %>%
-  filter(exclusion_primary == exclusion_secondary, 
-         exclusion_reason_primary != exclusion_reason_secondary) %>%
-  select(article_id, sample_id, exclusion_reason_primary, exclusion_reason_secondary)
+# d_articles %>% # NOT RUN
+#   filter(exclusion_primary == exclusion_secondary, 
+#          exclusion_reason_primary != exclusion_reason_secondary) %>%
+#   select(article_id, sample_id, exclusion_reason_primary, exclusion_reason_secondary)
 ```
 
 We will resolve these by applying the exclusion criteria hierarchically. In other words, we use the highest level of exclusion criteria assigned by one of the two coders.
@@ -315,7 +292,9 @@ d_articles <- d_articles %>%
 Finally, let's check anything that was excluded with the reason "OTHER". 
 
 ```{r}
-d_articles %>% filter(exclusion_reason_final == "OTHER") %>% select(article_id, sample_id)
+d_articles %>% 
+  filter(exclusion_reason_final == "OTHER") %>% 
+  select(article_id, sample_id)
 ```
 
 Article ID 68 can reclassifed as "NO ACCESS" and for the other three articles we can create a new post-hoc exclusion category "CONFERENCE ABSTRACT".
@@ -359,11 +338,11 @@ d_articles <- d_articles %>%
   ))
 ```
 
-# Resolve coding disagreements in journals data
+# Journals data — Resolve coding disagreements
 
 Note — its easier to do this in the original spreadsheet — for each journal I've added a new row with coder initials "FINAL (TEH)". If primary and secondary coding are aligned I just copied their coding into this row. If there were differences, I resolved them and entered the final decision into the new row.
 
-Make a tibble containing only the final coding for journals.\
+Make a tibble containing only the final coding for journals.
 
 ```{r}
 d_journals_final <- d_journals %>%
@@ -542,4 +521,22 @@ assert_that(
 )
 ```
 
+Now check that when `exclusion_primary` and `exclusion_secondary` are "EXCLUDE" then we have reasons in the reason columns. When they are "RETAIN" the reason columns should be NA.
+
+```{r}
+# primary_exclusions <- d_articles %>% 
+#   count(exclusion_primary, exclusion_reason_primary) %>%
+#   mutate(expected_values = case_when(
+#     exclusion_primary == "RETAIN" & is.na(exclusion_reason_primary) ~ T,
+#     exclusion_primary == "EXCLUDE" & exclusion_reason_primary %in% c("NO ACCESS", "NON-ENGLISH", "NOT EMPIRICAL", "RETRACTED", "IS ITSELF PPC", "OTHER") ~ T,
+#     TRUE ~ "criteria not met"
+#   ))
+# 
+# secondary_exclusions <- d_articles %>% 
+#   count(exclusion_secondary, exclusion_reason_secondary) %>%
+#   
+# 
+# 
+# assert_that(, msg = "Found unexpected value in exclusion reason column when it should be NA")
+```
 
