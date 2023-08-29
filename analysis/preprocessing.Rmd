@@ -350,23 +350,14 @@ d_journals_final <- d_journals %>%
   select(-coder_id, -timestamps) # drop the coder_id and timestamps columns
 ```
 
-# Journals data - exclusions
-
-```{r}
-d_journals_final_eligible <- d_journals_final %>%
-  filter(journal_empirical == "Yes") %>%
-  select(-journal_empirical)
-```
-
-
 # Journals data — reorganise
 
 Currently we have one row per journal, and sometimes more than one PPC per journal. To make analysis easier, let's switch the data frame from wide to long format (i.e., switch to one row per PPC instead of one row per journal).
 
 ```{r}
-d_journals_final_eligible <- d_journals_final_eligible %>%
+d_journals_final <- d_journals_final %>%
   pivot_longer( # pivot to long format
-    cols = c(-journal,-sample_id, -anyPPC,-general_note),
+    cols = c(-journal,-journal_empirical,-sample_id,-anyPPC,-general_note),
     names_to = c("PPC_type", ".value"), 
     names_sep = "_ppc_"
   )
@@ -387,7 +378,7 @@ linesToWord <- 10 # after inspecting articles published by journals that use lin
 We will also harmonize differences in data entry formatting, e.g., some coders used quotation marks, commas etc. Any qualitative limits will be designated as such.
 
 ```{r}
-d_journals_final_eligible <- d_journals_final_eligible %>% 
+d_journals_final <- d_journals_final %>% 
   mutate(length_harmonized = str_remove_all(length, pattern = '"'), #  remove any quotation marks
          length_harmonized = str_remove(length_harmonized, pattern = fixed("YES (copy and paste the limits in the 'other' section below), ")),# remove data entry question text
          length_harmonized = case_when(
