@@ -350,6 +350,10 @@ d_journals <- d_journals %>%
   select(-coder_id, -timestamps) # drop the coder_id and timestamps columns
 ```
 
+d_journals %>%
+  group_by(journal) %>%
+  mutate(has_final = any(coder_id == "FINAL (TEH)"))
+  
 # Journals data — reorganise
 
 Currently we have one row per journal, and sometimes more than one PPC per journal. To make analysis easier, let's switch the data frame from wide to long format (i.e., switch to one row per PPC instead of one row per journal).
@@ -440,6 +444,8 @@ d_journals <- d_journals %>%
            time_harmonized == "he Commentary mechanism is most effective when used to address a contemporary publication" ~ "Qualitative",
            time_harmonized == "Matters Arising articles are interesting and timely scientific or academic comments" ~ "Qualitative",
            time_harmonized == "recent" ~ "Qualitative",
+           time_harmonized == "timely" ~ "Qualitative",
+           time_harmonized == "UNCLEAR (provide detail in the 'other' section below), timely scientific comments" ~ "Qualitative",
            time_harmonized == "recently published" ~ "Qualitative",
            time_harmonized == "UNCLEAR (provide detail in the 'other' section below), recently published" ~ "Qualitative",
            time_harmonized == "YES (copy and paste the limits in the 'other' section below), 1-year (except for a test of replication)" ~ as.character(1*yearToWeek),
@@ -462,6 +468,7 @@ d_journals <- d_journals %>%
            ref_harmonized == "contributions may have up to 15 references" ~ "15",
            ref_harmonized == "Included in 16 page overall limit" ~ "NOT STATED",
            ref_harmonized == "No more than 5 references" ~ "5",
+           ref_harmonized == "a maximum of 5 references" ~ "5",
            ref_harmonized == "overall limit is 265 lines of text including references" ~ "NOT STATED",
            TRUE ~ ref_harmonized
          )) 
@@ -473,10 +480,14 @@ For PPC peer review policy we need to harmonize differences in data entry format
 
 ```{r}
 d_journals <- d_journals %>% 
-  mutate(review_harmonized = case_when(
+  mutate(review_harmonized = str_remove_all(review, pattern = '"'), #  remove any quotation marks
+         review_harmonized = case_when(
            review == "NO, This correspondence is published at the discretion of the Editor-in-Chief and the Associate Editors" ~ "NO",
            review == "NOT STATED, The guidelines discuss peer review, but it appears that this discussion isn't relevant to commentary articles." ~ "NOT STATED",
            review == "UNCLEAR (provide detail in the 'other' section below), It 'may' be sent for independent review: 'Matters Arising submissions that meet the journal’s criteria are sent to the authors of the original paper for a formal response. The comments and formal response may then be sent to independent referees.'" ~ "YES",
+           review == "NO, Strongly implied not, by this: \"The decision to publish is made by the Editors, in order to ensure a timely appearance in print. \"" ~ "NO",
+           review == "YES, ...published work and may, after peer review, be published online as Matters Arising" ~ "YES",
+           review == "YES, Commentaries will be subjected to peer-review and will be held to the same standards of providing a notable contribution to our field to warrant publication." ~ "YES",
            TRUE ~ review
          )) 
 ```
@@ -518,7 +529,7 @@ Reclassify some values like "Yes" and "No" into logicals, format some columns, a
 d_journals <- d_journals %>%
   mutate(sample_id = factor(sample_id),
          journal_name = factor(journal),
-         is_empirical = fct_recode(journal_empirical, T = "Yes", F = "No"),
+         is_empirical = as.logical(fct_recode(journal_empirical, T = "Yes", F = "No")),
          has_ppc = fct_recode(anyPPC, 
                              "ARCHIVE" = "ARCHIVE ONLY", 
                              "NO IMPLICIT" = "NO (there are no PPC options)",
@@ -532,7 +543,7 @@ d_articles <- d_articles %>%
          article_id = factor(article_id),
          exclude = factor(exclusion_final),
          exclude_reason = factor(exclusion_reason_final),
-         ppc_linked = fct_recode(ppc_linked_final, T = "NO", F = "YES")) %>%
+         ppc_linked = as.logical(fct_recode(ppc_linked_final, T = "NO", F = "YES"))) %>%
   select(sample_id, article_id, exclude, exclude_reason, ppc_linked)
 ```
 
@@ -546,8 +557,8 @@ and convert these to `TRUE` and `FALSE` respectively.
 
 ```{r}
 assert_that(
-  all(d_journals$journal_empirical %in% c("Yes", "No")),
-  msg = "Found unexpected values in journal_empirical column"
+  all(d_journals$is_empirical %in% c(T,F)),
+  msg = "Found unexpected values in is_empirical column"
 )
 ```
 
