@@ -94,42 +94,42 @@ For the journal HUMAN ARENAS, RTT coded twice, first entry was an error and need
 
 ```{r}
 d_journals <- d_journals %>%
-  filter(!(journal == "HUMAN ARENAS" & timestamps == "8/6/2023 3:37:26"))
+  filter(!(journal == "HUMAN ARENAS" & timestamps == "8/6/2023 3:37:26" & coder_id != "FINAL (TEH)"))
 ```
 
 For the journal INFANTS & YOUNG CHILDREN, MN coded twice, first entry was an error and needs to be removed.
 
 ```{r}
 d_journals <- d_journals %>%
-  filter(!(journal == "INFANTS & YOUNG CHILDREN" & timestamps == "7/15/2023 18:51:15"))
+  filter(!(journal == "INFANTS & YOUNG CHILDREN" & timestamps == "7/15/2023 18:51:15" & coder_id != "FINAL (TEH)"))
 ```
 
 For the journal EDUCATIONAL PSYCHOLOGIST, AW coded twice, first entry was an error and needs to be removed.
 
 ```{r}
 d_journals <- d_journals %>%
-  filter(!(journal == "EDUCATIONAL PSYCHOLOGIST" & timestamps == "6/29/2023 14:06:13"))
+  filter(!(journal == "EDUCATIONAL PSYCHOLOGIST" & timestamps == "6/29/2023 14:06:13" & coder_id != "FINAL (TEH)"))
 ```
 
 For the journal EUROPEAN JOURNAL OF PERSONALITY, journal is in both samples so AW coded twice, entries are substantively the same, removing first entry.
 
 ```{r}
 d_journals <- d_journals %>%
-  filter(!(journal == "EUROPEAN JOURNAL OF PERSONALITY" & timestamps == "6/29/2023 22:01:35"))
+  filter(!(journal == "EUROPEAN JOURNAL OF PERSONALITY" & timestamps == "6/29/2023 22:01:35" & coder_id != "FINAL (TEH)"))
 ```
 
 For the journal PERSONALITY AND SOCIAL PSYCHOLOGY REVIEW, two entries from NM, first entry was an error.
 
 ```{r}
 d_journals <- d_journals %>%
-  filter(!(journal == "PERSONALITY AND SOCIAL PSYCHOLOGY REVIEW" & timestamps == "7/3/2023 18:34:38"))
+  filter(!(journal == "PERSONALITY AND SOCIAL PSYCHOLOGY REVIEW" & timestamps == "7/3/2023 18:34:38" & coder_id != "FINAL (TEH)"))
 ```
 
 For the journal PSYCHOLOGICAL MEDICINE, two entries from RTT, first entry was an error.
 
 ```{r}
 d_journals <- d_journals %>%
-  filter(!(journal == "PSYCHOLOGICAL MEDICINE" & timestamps == "8/6/2023 9:49:10"))
+  filter(!(journal == "PSYCHOLOGICAL MEDICINE" & timestamps == "8/6/2023 9:49:10" & coder_id != "FINAL (TEH)"))
 ```
 
 # Perform initial tests and fix some issues
@@ -352,7 +352,8 @@ d_journals <- d_journals %>%
 
 d_journals %>%
   group_by(journal) %>%
-  mutate(has_final = any(coder_id == "FINAL (TEH)"))
+  mutate(has_final = any(coder_id == "FINAL (TEH)")) %>%
+  filter(has_final == F) %>% View()
   
 # Journals data — reorganise
 
