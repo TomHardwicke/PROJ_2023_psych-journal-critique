@@ -5,27 +5,59 @@ date: "2023-08-28"
 output: html_document
 ---
 
-#Prelim results and visualisations for d_journals using Primary coding data only
+#Prelim results and visualisations for d_journals using FINAL coding data only
  
 ```{r}
 #Genarate table to assess anyPPC
 
-d_primaryONLY <- d_journals %>%
-  filter(coder_id == "AW" | coder_id == "NM") %>% #keeps only entries with primary coder initials from main data tibble d_journals
+d_FINAL <- d_journals %>%
+  filter(coder_id == "FINAL (TEH)") %>% #keeps only FINAL coded by TEH
   filter(journal_empirical == "Yes") %>%          #removes ineligible journals (not empirical)
   group_by(journal) %>%
-  distinct(journal, .keep_all = TRUE)             #keeps only distinct journal entries
+#  distinct(journal, .keep_all = TRUE) %>%        #keeps only distinct journal entries
+    mutate(anyPPC = case_when(
+    anyPPC == 'Unclear' | anyPPC == 'UNSURE' | anyPPC == 'Unclear type' ~ 'UNCLEAR',
+    anyPPC == 'NO (explicit statement that PPC is not accepted)' | anyPPC == 'NO (there are no PPC options)' ~ 'NO',
+    TRUE ~ anyPPC
+    ))
 
- table(d_primaryONLY$sampleID, d_primaryONLY$anyPPC)
+ table(d_FINAL$sampleID, d_FINAL$anyPPC)
  
- table(d_primaryONLY$sampleID)
+ table(d_FINAL$sampleID)
 ```
+
+
+# Calculate CIs for YES 
+```{r}
+library(binom)
+
+# Prominent Sample data
+prominentSuccess <- 47
+randomSuccess <- 29
+totalSuccess <- 72
+
+sample_size <- 100
+totalSample <- 189
+confidence_level <- 0.95
+
+# Calculate the Wilson confidence interval
+ci_prominent <- binom.confint(prominentSuccess, sample_size, method = "wilson", conf.level = confidence_level)
+ci_random <- binom.confint(randomSuccess, sample_size, method = "wilson", conf.level = confidence_level)
+ci_total <- binom.confint(totalSuccess, totalSample, method = "wilson", conf.level = confidence_level)
+
+# Print the confidence interval
+print(ci_prominent)
+print(ci_random)
+print(ci_total)
+```
+
+
 
 #Look at limitations for anyPPC = YES
 ```{r}
 
 # Removes journals that do not offer any PPC 
- d_PPConly <- d_primaryONLY %>%
+ d_PPConly <- d_FINAL %>%
    filter(anyPPC == "YES")
 
 #Look at stated length limits
@@ -50,11 +82,11 @@ table(PPC_time$ppc_time_A)
 ```{r}
 # Load googlesheet data
 
-dj_prominent <- read_csv(here('data','raw', 'journalList_PROMINENT.csv')) %>% #loads csv of googlesheet data of prominent journals
+dj_prominent <- read_csv(here('data','raw', 'journals-prominent.csv')) %>% #loads csv of googlesheet data of prominent journals
   slice_head(n = 114) %>%
   select('journal' = 'journal_name', 'COPE' = 'COPE (T = member; F = not a member)' )
 
-dj_random <- read_csv(here('data','raw', 'journalList_RANDOM.csv')) %>% #loads csv of googlesheet data of random journals
+dj_random <- read_csv(here('data','raw', 'journals-random.csv')) %>% #loads csv of googlesheet data of random journals
   slice_head(n = 108) %>%
   select('journal' = 'journal_name', 'COPE' = 'COPE (T = member; F = not a member)' )
 
@@ -82,8 +114,12 @@ for (i in seq_len(nrow(duplicate_rows))) {
   }
 }
 
-#All 14 duplicated (both sample) journals had consistent COPE status, join with main data tibble:
-d_cope <- left_join(d_journals, dj_cope, by = 'journal')
+#All 14 duplicated (both sample) journals had consistent COPE status, remove duplicates
+dj_cope <- distinct(dj_cope, journal, .keep_all = T)
+
+
+#join with main data tibble:
+d_FINAL <- left_join(d_FINAL, dj_cope, by = 'journal')
 
 ```
 
@@ -106,12 +142,27 @@ tmp <- d_journals_random %>% filter(is.na(`2021 JIF`)) %>% distinct(journal, .ke
 write_csv(tmp,here('data', 'prepareSample', 'journals', '02 - modified', 'we_need_jifs.csv'))
 
 
+# Bar graph of PPC by COPE
 
+```{r}
+
+# Create bar plot
+d_FINAL %>%  
+  ggplot() +
+geom_bar(
+  mapping = aes(x=anyPPC, fill = COPE),
+  stat = "count",
+  position = "stack",
+  colour = "black",
+  just = 0.5,
+  width = 0.7,
+  na.rm = FALSE,
+  orientation = NA,
+  show.legend = TRUE,
+  inherit.aes = TRUE
+) +
+  theme_bw() +
+  scale_fill_brewer(palette = "Blues")
+ # facet_wrap(~field) +
+  labs(title = "Journal PPC Acceptance by COPE membership", x = "Accepts PPC", y = "Count")
 ```
-
- 
- 
-
-   
- 
- 
