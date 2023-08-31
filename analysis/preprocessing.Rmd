@@ -401,6 +401,18 @@ d_journals <- d_journals %>%
            length_harmonized == "Maximum length: 1100 words." ~ "1100",
            length_harmonized == "short" ~ "Qualitative",
            length_harmonized == "up to 2,000 words counting 500 words per table and figure" ~ "2000",
+           length_harmonized == " Rebuttals and peer commentaries should not exceed 1000 words. Exceptions to these length guidelines can be granted in special cases." ~ "1000",
+           length_harmonized == "1,200 words" ~ "1200",
+           length_harmonized == "1200 words (main text)" ~ "1200",
+           length_harmonized == "2,000 words (excluding abstract, references). Abstract: 200 words" ~ "2000",
+           length_harmonized == "5 pages" ~ as.character(5*pageToWord),
+           length_harmonized == "no more than 1000 words" ~ "1000",
+           length_harmonized == "no more than half the length of the original article" ~ "Qualitative",
+           length_harmonized == "not exceed 500 words" ~ "500",
+           length_harmonized == "Such manuscripts should normally be between 3,000 to 5,000 words, all inclusive (i.e., abstract, text, figures, tables, and references)." ~ "5000",
+           length_harmonized == "typically 1,500 words, excluding references.​" ~ "1500",
+           length_harmonized == "up to 3,000 words" ~ "3000",
+           length_harmonized == "3000 words" ~ "3000",
            TRUE ~ length_harmonized
          )) 
 ```
