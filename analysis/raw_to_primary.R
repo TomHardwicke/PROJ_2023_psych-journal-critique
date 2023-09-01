@@ -24,12 +24,9 @@ d_journals <- read_csv(here('data','raw','Data Extraction Form (policy) (Respons
   select(-`Are you piloting?`)
 
 # Some journal names were entered in the extraction form with incorrect formatting. Correct this below.
-
-
 d_journals <- d_journals %>% 
   mutate(`Journal Name` = fct_recode(`Journal Name`,
                               "MEMORY & COGNITION" = "Memory & Cognition","JOURNAL OF COUPLE & RELATIONSHIP THERAPY-INNOVATIONS IN CLINICAL AND EDUCATIONAL INTERVENTIONS" = "Journal of Couple & Relationship Therapy"))
-
 
 # Attach sample information to extracted data
 
@@ -59,6 +56,8 @@ d_journals <- d_journals %>%
     sample_journal_both = sample_journal_prominent & sample_journal_random,
     sample_journal_error = !sample_journal_prominent & !sample_journal_random
   )
+
+
 
 #Creates sample_id column denoting; prominent, random, or both to replace the 4 specified columns above
 d_journals <- d_journals %>% 
