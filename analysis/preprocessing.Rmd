@@ -350,11 +350,6 @@ d_journals <- d_journals %>%
   select(-coder_id, -timestamps) # drop the coder_id and timestamps columns
 ```
 
-d_journals %>%
-  group_by(journal) %>%
-  mutate(has_final = any(coder_id == "FINAL (TEH)")) %>%
-  filter(has_final == F) %>% View()
-  
 # Journals data — reorganise
 
 Currently we have one row per journal, and sometimes more than one PPC per journal. To make analysis easier, let's switch the data frame from wide to long format (i.e., switch to one row per PPC instead of one row per journal).
