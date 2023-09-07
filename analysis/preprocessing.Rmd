@@ -216,8 +216,8 @@ Find cases where primary and secondary coder disagreed on whether to exclude.
 
 ```{r}
 # NOT RUN — used to identify cases where primary and secondary coder disagreed on whether to exclude.
-# d_articles %>%
-#   filter(exclusion_primary != exclusion_secondary)
+ # d_articles %>%
+ #    filter(exclusion_primary != exclusion_secondary)
 ```
 
 Following protocol, coding discrepancies are resolved by TEH. We now create an `exclusion_final` column which represents the resolved coding. TEH decides to either go with the primary or secondary coder's verdict. For other articles, we use the primary coder's verdict (which is the same as the secondary coder).
@@ -236,6 +236,10 @@ d_articles <- d_articles %>%
     sample_id == 'prominent' & article_id == '49' ~ exclusion_primary,
     sample_id == 'prominent' & article_id == '66' ~ exclusion_primary,
     sample_id == 'prominent' & article_id == '98' ~ exclusion_primary,
+    sample_id == 'prominent' & article_id == '123' ~ exclusion_primary,
+    sample_id == 'prominent' & article_id == '124' ~ exclusion_primary,
+    sample_id == 'prominent' & article_id == '130' ~ exclusion_secondary,
+    sample_id == 'prominent' & article_id == '132' ~ exclusion_primary,
     TRUE ~ exclusion_primary
   ))
 
@@ -252,6 +256,7 @@ d_articles <- d_articles %>%
     sample_id == 'prominent' & article_id == '49' ~ exclusion_reason_primary,
     sample_id == 'prominent' & article_id == '66' ~ exclusion_reason_primary,
     sample_id == 'prominent' & article_id == '98' ~ exclusion_reason_primary,
+    sample_id == 'prominent' & article_id == '130' ~ exclusion_reason_secondary,
     TRUE ~ exclusion_reason_primary
   ))
 ```
@@ -260,10 +265,10 @@ Find cases where primary and secondary coder disagreed on why to exclude.
 
 ```{r}
 # we've already dealt with cases where the decision to exclude differs, so we're not looking only at cases where the decision to exclude matches, but the reason for exclusion differs
-# d_articles %>% # NOT RUN
-#   filter(exclusion_primary == exclusion_secondary, 
-#          exclusion_reason_primary != exclusion_reason_secondary) %>%
-#   select(article_id, sample_id, exclusion_reason_primary, exclusion_reason_secondary)
+ # d_articles %>% # NOT RUN
+ #   filter(exclusion_primary == exclusion_secondary, 
+ #          exclusion_reason_primary != exclusion_reason_secondary) %>%
+ #   select(article_id, sample_id, exclusion_reason_primary, exclusion_reason_secondary, exclusion_reason_final)
 ```
 
 We will resolve these by applying the exclusion criteria hierarchically. In other words, we use the highest level of exclusion criteria assigned by one of the two coders.
