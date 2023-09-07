@@ -505,7 +505,7 @@ Firstly, specify PPC names that we want to convert to different harmonized names
 
 ```{r}
 commentaries <- c("Brief comment", "Brief Comment", "Brief empirical notes", "brief peer commentaries or rebuttals", "commentaries", "Commentaries", "Commentary", "Comments", "Commentry", "commentary", "Commentary articles", "Matters Arising", "Observations & Commentaries", "Open peer commentaries", "Short Communications and Commentaries", "Short Research Notes", "Text review")
-letters <- c("Letter", "Letters", "Letter to the editor", "Letters to the editor", "letters to the editor", "Letters to the Editor.", "letters to the editors", "Letters to the Editors", "Letters to the Editor", "Letter to the Editor")
+letters <- c("Letter", "Letters", "Letter to the editor", "Letters to the editor", "letters to the editor", "Letters to the Editor.", "letters to the editors", "Letters to the Editors", "Letters to the Editor", "Letter to the Editor", "Responses", "Correspondence")
 # web_comments <- c()
 other <- c("Verification reports")
 ```
@@ -518,6 +518,7 @@ d_journals <- d_journals %>%
     name %in% other ~ "Other"
   ))
 ```
+
 
 # Reclassify and reformat
 
@@ -533,6 +534,12 @@ d_journals <- d_journals %>%
                              "NO IMPLICIT" = "NO (there are no PPC options)",
                              "NO EXPLICIT" = "NO (explicit statement that PPC is not accepted)")) %>%
   select(sample_id, journal_name, is_empirical, has_ppc, ppc_type = PPC_type, ppc_name = name_harmonized, ppc_description = description, ppc_length = length_harmonized, ppc_time = time_harmonized, ppc_ref = ref_harmonized, ppc_review = review_harmonized, cope, field, jif)
+```
+#Reclassify PPC name in JOURNAL OF CLINICAL PSYCHIATRY due to quotation marks in raw data name impeding inclusion above
+
+```{r}
+d_journals <- d_journals %>%
+  mutate(ppc_name = ifelse(is.na(ppc_name) & journal_name == "JOURNAL OF CLINICAL PSYCHIATRY" & ppc_type == "A", "Letters", ppc_name))
 ```
 
 ```{r}
