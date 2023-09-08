@@ -414,6 +414,7 @@ d_journals <- d_journals %>%
            length_harmonized == "typically 1,500 words, excluding references.​" ~ "1500",
            length_harmonized == "up to 3,000 words" ~ "3000",
            length_harmonized == "3000 words" ~ "3000",
+           length_harmonized == "1500 words" ~ "1500",
            TRUE ~ length_harmonized
          )) 
 ```
