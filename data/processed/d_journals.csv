@@ -177,7 +177,7 @@ random,JOURNAL OF MOTOR LEARNING AND DEVELOPMENT,TRUE,YES,C,NA,NA,NA,NA,NA,NA,FA
 random,JOURNAL OF PERSONNEL PSYCHOLOGY,TRUE,NO IMPLICIT,A,NA,NA,NA,NA,NA,NA,FALSE,"Psychology, Applied",1.625
 random,JOURNAL OF PERSONNEL PSYCHOLOGY,TRUE,NO IMPLICIT,B,NA,NA,NA,NA,NA,NA,FALSE,"Psychology, Applied",1.625
 random,JOURNAL OF PERSONNEL PSYCHOLOGY,TRUE,NO IMPLICIT,C,NA,NA,NA,NA,NA,NA,FALSE,"Psychology, Applied",1.625
-random,JOURNAL OF PSYCHOLOGY AND THEOLOGY,TRUE,YES,A,NA,Responses to current or past journal articles.,NOT STATED,NOT STATED,NOT STATED,NOT STATED,TRUE,"Psychology, Multidisciplinary",0.8
+random,JOURNAL OF PSYCHOLOGY AND THEOLOGY,TRUE,YES,A,Letters,Responses to current or past journal articles.,NOT STATED,NOT STATED,NOT STATED,NOT STATED,TRUE,"Psychology, Multidisciplinary",0.8
 random,JOURNAL OF PSYCHOLOGY AND THEOLOGY,TRUE,YES,B,NA,NA,NA,NA,NA,NA,TRUE,"Psychology, Multidisciplinary",0.8
 random,JOURNAL OF PSYCHOLOGY AND THEOLOGY,TRUE,YES,C,NA,NA,NA,NA,NA,NA,TRUE,"Psychology, Multidisciplinary",0.8
 random,JOURNAL OF REPRODUCTIVE AND INFANT PSYCHOLOGY,TRUE,NO IMPLICIT,A,NA,NA,NA,NA,NA,NA,TRUE,"Psychology, Multidisciplinary",3.207
@@ -478,7 +478,7 @@ prominent,JOURNAL OF BUSINESS AND PSYCHOLOGY,TRUE,NO IMPLICIT,C,NA,NA,NA,NA,NA,N
 prominent,JOURNAL OF CHILD PSYCHOLOGY AND PSYCHIATRY,TRUE,ARCHIVE,A,NA,NA,NA,NA,NA,NA,TRUE,PSYCHOLOGY - SCIE,8.265
 prominent,JOURNAL OF CHILD PSYCHOLOGY AND PSYCHIATRY,TRUE,ARCHIVE,B,NA,NA,NA,NA,NA,NA,TRUE,PSYCHOLOGY - SCIE,8.265
 prominent,JOURNAL OF CHILD PSYCHOLOGY AND PSYCHIATRY,TRUE,ARCHIVE,C,NA,NA,NA,NA,NA,NA,TRUE,PSYCHOLOGY - SCIE,8.265
-prominent,JOURNAL OF CLINICAL PSYCHIATRY,TRUE,YES,A,NA,"Letters commenting on a recent article(s) in the JCP should not exceed 500 words and will be sent to the author(s) for response.
+prominent,JOURNAL OF CLINICAL PSYCHIATRY,TRUE,YES,A,Letters,"Letters commenting on a recent article(s) in the JCP should not exceed 500 words and will be sent to the author(s) for response.
 [...]
 For letters commenting on a Journal article, include a numbered reference to the article discussed. Be concise, and support your assertions with references as applicable. Also, please note that the authors of the original article will be given the opportunity to reply to letters commenting on their article. Letters that pertain to recent articles in the Journal should not exceed 500 words.",500,NOT STATED,NOT STATED,NOT STATED,FALSE,"PSYCHOLOGY, CLINICAL",5.906
 prominent,JOURNAL OF CLINICAL PSYCHIATRY,TRUE,YES,B,NA,NA,NA,NA,NA,NA,FALSE,"PSYCHOLOGY, CLINICAL",5.906
@@ -594,7 +594,7 @@ prominent,PSYCHOLOGICAL BULLETIN,TRUE,NO EXPLICIT,C,NA,NA,NA,NA,NA,NA,TRUE,PSYCH
 prominent,PSYCHOLOGICAL INQUIRY,FALSE,NA,A,NA,NA,NA,NA,NA,NA,TRUE,"PSYCHOLOGY, MULTIDISCIPLINARY",5.581
 prominent,PSYCHOLOGICAL INQUIRY,FALSE,NA,B,NA,NA,NA,NA,NA,NA,TRUE,"PSYCHOLOGY, MULTIDISCIPLINARY",5.581
 prominent,PSYCHOLOGICAL INQUIRY,FALSE,NA,C,NA,NA,NA,NA,NA,NA,TRUE,"PSYCHOLOGY, MULTIDISCIPLINARY",5.581
-prominent,PSYCHOLOGICAL MEDICINE,TRUE,YES,A,NA,Correspondence papers must be in response to content published in Psychological Magazine,1500 words,NOT STATED,max 20,NOT STATED,TRUE,PSYCHOLOGY - SCIE,10.592
+prominent,PSYCHOLOGICAL MEDICINE,TRUE,YES,A,Letters,Correspondence papers must be in response to content published in Psychological Magazine,1500,NOT STATED,max 20,NOT STATED,TRUE,PSYCHOLOGY - SCIE,10.592
 prominent,PSYCHOLOGICAL MEDICINE,TRUE,YES,B,NA,NA,NA,NA,NA,NA,TRUE,PSYCHOLOGY - SCIE,10.592
 prominent,PSYCHOLOGICAL MEDICINE,TRUE,YES,C,NA,NA,NA,NA,NA,NA,TRUE,PSYCHOLOGY - SCIE,10.592
 prominent,PSYCHOLOGICAL METHODS,TRUE,NO IMPLICIT,A,NA,NA,NA,NA,NA,NA,TRUE,"PSYCHOLOGY, MULTIDISCIPLINARY",10.929
