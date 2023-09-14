@@ -524,7 +524,35 @@ d_journals <- d_journals %>%
     name %in% other ~ "Other"
   ))
 ```
+# Harmonize field names deferring to WoS category
+```{r}
 
+d_journals <- d_journals %>% 
+  mutate(field_harmonized = case_when(
+           field == "Psychology | Sport" ~ "Sport",
+           field == "Psychology, Applied" ~ "Applied",
+           field == "PSYCHOLOGY, APPLIED" ~ "Applied",
+           field == "Psychology, Biological" ~ "Biological",
+           field == "PSYCHOLOGY, BIOLOGICAL" ~ "Biological",
+           field == "Psychology, Clinical" ~ "Clinical",
+           field == "PSYCHOLOGY, CLINICAL" ~ "Clinical",
+           field == "Psychology, Development" ~ "Developmental",
+           field == "PSYCHOLOGY, DEVELOPMENTAL" ~ "Developmental",
+           field == "Psychology, Educational" ~ "Educational",
+           field == "PSYCHOLOGY, EDUCATIONAL" ~ "Educational",
+           field == "Psychology, Experimental" ~ "Experimental",
+           field == "PSYCHOLOGY, EXPERIMENTAL" ~ "Experimental",
+           field == "Psychology, Mathematical" ~ "Mathematical",
+           field == "Psychology, Multidisciplinary" ~ "Multidisciplinary",
+           field == "PSYCHOLOGY, MULTIDISCIPLINARY" ~ "Multidisciplinary",
+           field == "Psychology, Social" ~ "Social",
+           field == "PSYCHOLOGY, SOCIAL" ~ "Social",
+           field == "Psychology" ~ "General",
+           field == "PSYCHOLOGY - SCIE" ~ "General",
+           TRUE ~ field
+         )) 
+
+```
 
 # Reclassify and reformat
 
@@ -539,7 +567,7 @@ d_journals <- d_journals %>%
                              "ARCHIVE" = "ARCHIVE ONLY", 
                              "NO IMPLICIT" = "NO (there are no PPC options)",
                              "NO EXPLICIT" = "NO (explicit statement that PPC is not accepted)")) %>%
-  select(sample_id, journal_name, is_empirical, has_ppc, ppc_type = PPC_type, ppc_name = name_harmonized, ppc_description = description, ppc_length = length_harmonized, ppc_time = time_harmonized, ppc_ref = ref_harmonized, ppc_review = review_harmonized, cope, field, jif)
+  select(sample_id, journal_name, is_empirical, has_ppc, ppc_type = PPC_type, ppc_name = name_harmonized, ppc_description = description, ppc_length = length_harmonized, ppc_time = time_harmonized, ppc_ref = ref_harmonized, ppc_review = review_harmonized, cope, field = field_harmonized, jif)
 ```
 #Reclassify PPC name in JOURNAL OF CLINICAL PSYCHIATRY due to quotation marks in raw data name impeding inclusion above
 
