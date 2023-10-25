@@ -320,7 +320,9 @@ We should now have resolved coding for all exclusion decisions and exclusion rea
 
 ```{r}
 d_articles %>%
-  count(exclusion_final, exclusion_reason_final)
+  group_by(sample_id) %>%
+  count(exclusion_final, exclusion_reason_final) %>%
+  ungroup()
 ```
 
 Now for articles that are retained, we need to check if they have the same classification in `ppc_linked`.
@@ -472,6 +474,7 @@ d_journals <- d_journals %>%
            ref_harmonized == "Included in 16 page overall limit" ~ "NOT STATED",
            ref_harmonized == "No more than 5 references" ~ "5",
            ref_harmonized == "a maximum of 5 references" ~ "5",
+           ref_harmonized == "max 20" ~ "20",
            ref_harmonized == "overall limit is 265 lines of text including references" ~ "NOT STATED",
            TRUE ~ ref_harmonized
          )) 

@@ -4,6 +4,30 @@ author: "Annie Whamond"
 date: "2023-08-28"
 output: html_document
 ---
+
+# Load libraries
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(RColorBrewer)
+library(dplyr)
+library(kableExtra) # for tables
+library(knitr) # for literate programming
+library(janitor) # for data munging
+library(tidylog) # for inline code feedback
+library(here) # for finding files
+library(validate) # for data validation and testing
+#library(ggthemr) # for ggplot theme
+library(ggrepel) # for ggplot text labels
+library(scales) # to wrap text on axis labels
+library(ggdist) # for plotting distributions
+library(patchwork) # for multipanel plot layouts
+library(ggbeeswarm) # for dotplots
+```
+
+
+
 # Load processed data files
 ```{r}
 
@@ -26,12 +50,203 @@ table(d_journals_anyPPC$has_ppc, d_journals_anyPPC$sample_id)
 ```
 
 
+``` {r}
+
+d_journalsEmp <- d_journals %>%
+  filter(is_empirical == "TRUE") %>%
+  filter(ppc_type == "A")
+  
+table(d_journalsEmp$field, d_journalsEmp$sample_id)
+
+```
+
+# Create tibbles for prominent and random journal samples
+```{r}
+dj_prom <- d_journalsEmp %>%
+  mutate(sample_id = case_when(
+    sample_id == "both" ~ "prominent",
+    TRUE ~ sample_id
+  )) %>%
+  filter(sample_id == "prominent")
+
+dj_random <- d_journalsEmp %>%
+  mutate(sample_id = case_when(
+    sample_id == "both" ~ "random",
+    TRUE ~ sample_id
+  )) %>%
+  filter(sample_id == "random")
+```
+
+# Descriptives for each journal sample 
+```{r}
+table(dj_prom$field, dj_prom$has_ppc)
+table(dj_random$field, dj_random$has_ppc)
+
+table(dj_prom$field, dj_prom$cope)
+table(dj_random$field, dj_random$cope)
+```
+
+
+
+# Plot sample id by field
+```{r}
+
+
+d_journals %>%
+  ggplot() +
+  geom_bar(
+    mapping = aes(x = field, fill = sample_id),
+    stat = "count",
+    position = "stack",
+    colour = "black",
+    just = 0.5,
+    width = 0.7,
+    na.rm = FALSE,
+    orientation = NA,
+    show.legend = TRUE,
+    inherit.aes = TRUE
+  ) +
+  theme_bw() +
+  scale_fill_brewer(palette = "Oranges") +
+  labs(title = "Sample ID by Field", x = "Field", y = "Count")
+
+```
+
+
+
+
+# CHAT GPT TEST
+```{r}
+library(dplyr)
+library(ggplot2)
+
+d_journals %>%
+  mutate(has_ppc = case_when(
+    has_ppc == 'ARCHIVE' ~ 'YES',
+    has_ppc == 'NO EXPLICIT' | has_ppc == 'NO IMPLICIT' ~ 'NO',
+    TRUE ~ has_ppc
+  )) %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc %in% c("YES", "NO")) %>%
+  filter(sample_id == 'both' | sample_id == 'random') %>%
+  group_by(field, has_ppc) %>%  # Group by field and has_ppc
+  summarise(count = n()) %>%   # Calculate counts for each combination
+  group_by(field) %>%           # Group by field only
+  mutate(percentage = round(count / sum(count) * 100)) %>%  # Calculate percentages within each field and round
+  ggplot() +
+  geom_bar(
+    mapping = aes(x = field, y = count, fill = has_ppc),
+    stat = "identity",  # Use "identity" for y values
+    position = "stack",
+    colour = "black",
+    width = 0.7,
+    na.rm = FALSE,
+    orientation = NA,
+    show.legend = TRUE,
+    inherit.aes = TRUE
+  ) +
+  theme_bw() +
+  scale_fill_brewer(palette = "Blues") +
+  labs(title = "Random Journal PPC Acceptance by Field", x = "Field", y = "Count")
+
+```
+
+
+# Create bar plot of PPC policy by Field
+```{r}
+
+# Creates bar graph for Prominent journals
+
+d_journals %>%  
+  mutate(has_ppc = case_when(
+    has_ppc == 'ARCHIVE' ~ 'YES',
+    has_ppc == 'NO EXPLICIT' | has_ppc == 'NO IMPLICIT' ~ 'NO',
+    TRUE ~ has_ppc
+    )) %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "YES" | has_ppc == "NO") %>%
+  filter(sample_id == 'both' | sample_id == 'prominent') %>%
+  ggplot() +
+geom_bar(
+  mapping = aes(x=field, fill = has_ppc),
+  stat = "count",
+  position = "stack",
+  colour = "black",
+  just = 0.5,
+  width = 0.7,
+  na.rm = FALSE,
+  orientation = NA,
+  show.legend = TRUE,
+  inherit.aes = TRUE
+) +
+  theme_bw() +
+  scale_fill_brewer(palette = "Blues") +
+  labs(title = "Prominent Journal PPC Acceptance by Field", x = "Field", y = "Count")
+```
+
+# Creates bar graph for Random journals
+``` {r}
+d_journals %>%  
+  mutate(has_ppc = case_when(
+    has_ppc == 'ARCHIVE' ~ 'YES',
+    has_ppc == 'NO EXPLICIT' | has_ppc == 'NO IMPLICIT' ~ 'NO',
+    TRUE ~ has_ppc
+    )) %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "YES" | has_ppc == "NO") %>%
+  filter(sample_id == 'both' | sample_id == 'random') %>%
+  ggplot() +
+geom_bar(
+  mapping = aes(x=field, fill = has_ppc),
+  stat = "count",
+  position = "stack",
+  colour = "black",
+  just = 0.5,
+  width = 0.7,
+  na.rm = FALSE,
+  orientation = NA,
+  show.legend = TRUE,
+  inherit.aes = TRUE
+) +
+  theme_bw() +
+  scale_fill_brewer(palette = "Blues") +
+  labs(title = "Random Journal PPC Acceptance by Field", x = "Field", y = "Count")
+```
+
+# Plot PPC length limits by Field and COPE
+```{r}
+d_length <- d_journals %>%
+  select(has_ppc, journal_name, jif, cope, ppc_length, ppc_time, ppc_ref, field) %>%
+  filter(has_ppc=="YES") %>%
+  filter(ppc_length !="NOT STATED") %>%
+  filter(ppc_length !="Qualitative limit") 
+
+d_length$ppc_length <- as.numeric(d_length$ppc_length)
+
+d_length %>%
+ggplot() +
+  geom_point(aes(x = ppc_length, 
+                               y = jif,
+                              shape = cope, 
+                              colour = field,
+                              size=1, 
+                              alpha = 0.7, 
+                              show.legend = FALSE,
+                              inherit.aes = FALSE)) +
+  theme_grey() +
+  labs(title = "Word Limits by JIF where PPC Accepted", x = "Word Limits", y = "Journal Impact Factor") +
+  scale_fill_brewer(palette="Accent") 
+```
+
+
+
 # Calculate CIs for YES 
+Not sure if this makes sense to do for Prominent and Total, as these are not random samples
 ```{r}
 library(binom)
 
 # Prominent Sample data
-prominentSuccess <- 38
+prominentSuccess <- 1
 randomSuccess <- 23
 totalSuccess <- 57
 
@@ -49,13 +264,36 @@ print(ci_prominent)
 print(ci_random)
 print(ci_total)
 ```
+
+# Calculate CIs for NO 
+```{r}
+library(binom)
+
+# Prominent Sample data
+prominentNO <- 77
+randomNO <- 74
+totalNO <- 123
+
+
+# Calculate the Wilson confidence interval
+ci_prominentNO <- binom.confint(prominentNO, sample_size, method = "wilson", conf.level = confidence_level)
+ci_randomNO <- binom.confint(randomNO, sample_size, method = "wilson", conf.level = confidence_level)
+ci_totalNO <- binom.confint(totalNO, totalSample, method = "wilson", conf.level = confidence_level)
+
+# Print the confidence interval
+print(ci_prominentNO)
+print(ci_randomNO)
+print(ci_totalNO)
+```
+
 # Look at PPC names
 ```{r}
 
-table(d_journals$ppc_name)
+table(d_journals$ppc_name)  #PPCnames
+table(d_journals$sample_id, d_journals$ppc_name) #lists journals with PPC types
 
 ```
-
+Total = 63, 5 journals offering 2 types
 
 
 # Look at PPC length limitations
@@ -69,25 +307,306 @@ table(d_journals$ppc_name)
 PPC_length <- d_PPConly %>%
   filter(!is.na(ppc_length)) %>%
   filter(ppc_length != "NO") %>%
-  filter(ppc_length != "NOT STATED")
+  filter(ppc_length != "NOT STATED") 
+  
+
+dj_prominent <- d_journals %>%
+  filter(sample_id != "random") 
+
+dj_random <- d_journals %>%
+  filter(sample_id != "prominent") 
+  
+
+#table_length <- table(PPC_length$ppc_length, PPC_length$ppc_name)
+table(dj_prominent$ppc_length, dj_prominent$ppc_name)
+table(dj_random$ppc_length, dj_random$ppc_name)
+```
 
 
-table(PPC_length$ppc_length, PPC_length$ppc_name)
+# Mean JIF by field and sample
+```{r}
+
+dj_prom %>%
+  filter(ppc_type == "A") %>%
+  group_by(field) %>%
+  summarise(mnJIF = mean(jif)) %>%
+  ungroup()
+
+dj_prom %>%
+  filter(ppc_type == "A") %>%
+  mutate(jif = round(jif, 2)) %>%
+  summarise(mean(jif), median(jif))
+
+
+```
+
+```{r}
+dj_random %>%
+  filter(ppc_type == "A") %>%
+  filter(!is.na(jif)) %>%
+  group_by(field) %>%
+  summarise(mnJIF = mean(jif)) %>%
+  ungroup()
+
+dj_random %>%
+  filter(ppc_type == "A") %>%
+  filter(!is.na(jif)) %>%
+  mutate(jif = round(jif, 2)) %>%
+  summarise(mean(jif), median(jif))
+```
+# PPC and COPE
+```{r}
+
+
+table(dj_prom$has_ppc, dj_prom$cope)
+
+
+dj_rand <- dj_random %>%
+  filter(ppc_type == "A") %>%
+  filter(is_empirical == TRUE)
+
+table(dj_rand$has_ppc, dj_rand$cope)
+
+
 ```
 
 
 
 # Look at PPC time limitations
 ``` {r}
-PPC_time <- d_PPConly %>%
-  filter(!is.na(ppc_time)) %>%
-  filter(ppc_time != "NOT STATED")
 
-table(PPC_time$ppc_time, PPC_time$ppc_name)
+table(dj_prominent$ppc_time, dj_prominent$ppc_name)
+table(dj_random$ppc_time, dj_random$ppc_name)
   
+```
+CREATE FIGURES FOR TYPES OF RESTRICTION STATEMENTS
+
+# FIGURE of PROMINENT length limits
+```{r}
+
+
+dj_prominent %>%
+  filter(!is.na(ppc_length)) %>%
+  filter(has_ppc != "ARCHIVE") %>%
+  mutate(ppc_length = case_when(
+    ppc_length %in% c(1000, 1200, 1500, 2000, 2500, 2650, 3000, 3500, 400, 500, 5000, 750, 800, 8000) ~ "Quantitative",
+    ppc_length == "NOT STATED" ~ "Not Stated",
+    TRUE ~ as.character(ppc_length)
+  )) %>%
+  ggplot(mapping = aes(x = ppc_length, fill = ppc_name)) +
+  geom_bar(position = "stack",
+           colour = "black",
+           width = 0.5) +
+  theme_bw() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 41)) +
+  scale_fill_brewer(palette = "Blues") +
+  theme(legend.position = c(0.9, 0.5)) +
+  labs(x = "Length Limit Statement", y = "Count", fill = "PPC Type")
+
+
+ggsave(filename = "Prominent_length.png", plot = last_plot(), device = "png")
+```
+# FIGURE of PROMINENT time limits
+```{r}
+
+dj_prominent %>%
+  filter(!is.na(ppc_time)) %>%
+  filter(has_ppc != "ARCHIVE") %>%
+  mutate(ppc_time = case_when(
+    ppc_time %in% c(13.05, 26.1, 39.15, 4, 52) ~ "Quantitative",
+    ppc_time == "NOT STATED" ~ "Not Stated",
+    TRUE ~ as.character(ppc_time)  # Keep other values as they are
+  )) %>%
+  ggplot(mapping = aes(x = ppc_time, fill = ppc_name)) +
+  geom_bar(position = "stack",
+           colour = "black",
+           width = 0.5,
+           ) +
+  theme_bw() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 41)) +
+  scale_fill_brewer(palette = "Blues") +
+  theme(legend.position = c(0.9, 0.5)) +
+  labs(x = "Time-to-Submit Limit Statement", y = "Count", fill = "PPC Type")
+
+ggsave(filename = "Prominent_time.png", plot = last_plot(), device = "png")
+```
+# FIGURE of PROMINENT reference limits
+```{r}
+
+dj_prominent %>%
+  filter(!is.na(ppc_ref)) %>%
+  filter(has_ppc != "ARCHIVE") %>%
+  mutate(ppc_ref = case_when(
+    ppc_ref %in% c(10, 15, 20, 5, "max 20") ~ "Quantitative",
+    ppc_ref == "NOT STATED" ~ "Not Stated",
+    TRUE ~ as.character(ppc_ref)  # Keep other values as they are
+  )) %>%
+  ggplot(mapping = aes(x = ppc_ref, fill = ppc_name)) +
+  geom_bar(position = "stack",
+           colour = "black",
+           width = 0.5,
+           ) +
+  theme_bw() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 41)) +
+  scale_fill_brewer(palette = "Blues") +
+  theme(legend.position = c(0.9, 0.5)) +
+  labs(x = "Reference Limit Statement", y = "Count", fill = "PPC Type")
+
+ggsave(filename = "Prominent_ref.png", plot = last_plot(), device = "png")
+```
+# FIGURE of PROMINENT Peer-Review 
+```{r}
+
+dj_prominent %>%
+  filter(!is.na(ppc_review)) %>%
+  filter(has_ppc != "ARCHIVE") %>%
+ mutate(ppc_review = fct_relevel(
+    case_when(
+      ppc_review == "YES" ~ "Yes",
+      ppc_review == "NO" ~ "No",
+      ppc_review == "NOT STATED" ~ "Not Stated",
+      TRUE ~ as.character(ppc_review)  # Keep other values as they are
+    ),
+    c("Not Stated", "No", "Yes")  # Specify the desired order
+  )) %>%
+  ggplot(mapping = aes(x = ppc_review, fill = ppc_name)) +
+  geom_bar(position = "stack",
+           colour = "black",
+           width = 0.5,
+           ) +
+  theme_bw() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 41)) +
+  scale_fill_brewer(palette = "Blues") +
+  theme(legend.position = c(0.9, 0.5)) +
+  labs(x = "PPC Sent for Peer-review", y = "Count", fill = "PPC Type")
+
+ggsave(filename = "Prominent_review.png", plot = last_plot(), device = "png")
 ```
 
 
+# FIGURE of RANDOM Length Limits
+```{r}
+
+dj_random %>%
+  filter(!is.na(ppc_length)) %>%
+  mutate(ppc_length = case_when(
+    ppc_length %in% c(1000, 1100, 1200, 2000, 2500, 2650, 500) ~ "Quantitative",
+    ppc_length == "NOT STATED" ~ "Not Stated",
+    TRUE ~ as.character(ppc_length)  # Keep other values as they are
+  )) %>%
+  ggplot(mapping = aes(x = ppc_length, fill = ppc_name)) +
+  geom_bar(position = "stack",
+           colour = "black",
+           width = 0.5,
+           ) +
+  theme_bw() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 25)) +
+  scale_fill_brewer(palette = "Blues") +
+  theme(legend.position = c(0.9, 0.7)) +
+  labs(x = "Length Limit Statement", y = "Count", fill = "PPC Type")
+
+ggsave(filename = "Random_length.png", plot = last_plot(), device = "png")
+```
+
+
+# FIGURE of RANDOM time limits
+```{r}
+
+dj_random %>%
+  filter(!is.na(ppc_time)) %>%
+  filter(has_ppc != "ARCHIVE") %>%
+  mutate(ppc_time = case_when(
+    ppc_time %in% 39.15 ~ "Quantitative",
+    ppc_time == "NOT STATED" ~ "Not Stated",
+    TRUE ~ as.character(ppc_time)  # Keep other values as they are
+  )) %>%
+  ggplot(mapping = aes(x = ppc_time, fill = ppc_name)) +
+  geom_bar(position = "stack",
+           colour = "black",
+           width = 0.5,
+           ) +
+  theme_bw() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 25)) +
+  scale_fill_brewer(palette = "Blues") +
+  theme(legend.position = c(0.9, 0.7)) +
+  labs(x = "Time-to-Submit Limit Statement", y = "Count", fill = "PPC Type")
+
+ggsave(filename = "Random_time.png", plot = last_plot(), device = "png")
+```
+# FIGURE of PROMINENT reference limits
+```{r}
+
+dj_random %>%
+  filter(!is.na(ppc_ref)) %>%
+  filter(has_ppc != "ARCHIVE") %>%
+  mutate(ppc_ref = case_when(
+    ppc_ref %in% c(10, 15, 5) ~ "Quantitative",
+    ppc_ref == "NOT STATED" ~ "Not Stated",
+    TRUE ~ as.character(ppc_ref)  # Keep other values as they are
+  )) %>%
+  ggplot(mapping = aes(x = ppc_ref, fill = ppc_name)) +
+  geom_bar(position = "stack",
+           colour = "black",
+           width = 0.5,
+           ) +
+  theme_bw() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 25)) +
+  scale_fill_brewer(palette = "Blues") +
+  theme(legend.position = c(0.9, 0.7)) +
+  labs(x = "Reference Limit Statement", y = "Count", fill = "PPC Type")
+
+ggsave(filename = "Random_ref.png", plot = last_plot(), device = "png")
+```
+# FIGURE of RANDOM Peer-Review 
+```{r}
+
+dj_random %>%
+  filter(!is.na(ppc_review)) %>%
+  filter(has_ppc != "ARCHIVE") %>%
+ mutate(ppc_review = fct_relevel(
+    case_when(
+      ppc_review == "YES" ~ "Yes",
+      ppc_review == "NO" ~ "No",
+      ppc_review == "NOT STATED" ~ "Not Stated",
+      TRUE ~ as.character(ppc_review)  # Keep other values as they are
+    ),
+    c("Not Stated", "No", "Yes")  # Specify the desired order
+  )) %>%
+  ggplot(mapping = aes(x = ppc_review, fill = ppc_name)) +
+  geom_bar(position = "stack",
+           colour = "black",
+           width = 0.5,
+           ) +
+  theme_bw() +
+  coord_flip() +
+  scale_y_continuous(limits = c(0, 25)) +
+  scale_fill_brewer(palette = "Blues") +
+  theme(legend.position = c(0.9, 0.7)) +
+  labs(x = "PPC Sent for Peer-review", y = "Count", fill = "PPC Type")
+
+ggsave(filename = "Random_review.png", plot = last_plot(), device = "png")
+```
+
+
+# PPC Reference limits
+```{r}
+table(dj_prominent$ppc_ref, dj_prominent$ppc_name)
+table(dj_random$ppc_ref, dj_random$ppc_name)
+
+```
+# PPC Peer Review
+```{r}
+table(dj_prominent$ppc_review, dj_prominent$ppc_name)
+table(dj_random$ppc_review, dj_random$ppc_name)
+
+```
 
 
 # Bar graph of PPC by COPE
@@ -96,7 +615,7 @@ table(PPC_time$ppc_time, PPC_time$ppc_name)
 library(ggplot2)
 library(RColorBrewer)
 
-# Create bar plot
+# Overall
 d_journals %>%  
   mutate(has_ppc = case_when(
     has_ppc == 'ARCHIVE' ~ 'YES',
@@ -121,12 +640,523 @@ geom_bar(
   theme_bw() +
   scale_fill_brewer(palette = "Blues") +
   labs(title = "Journal PPC Acceptance by COPE membership", x = "Accepts PPC", y = "Count")
+
+```
+
+``` {r}
+# Prominent Sample
+d_journals %>%  
+  filter(sample_id == "prominent" | sample_id == "both") %>%
+  mutate(has_ppc = case_when(
+    has_ppc == 'ARCHIVE' ~ 'NO',
+    has_ppc == 'NO EXPLICIT' | has_ppc == 'NO IMPLICIT' ~ 'NO',
+    TRUE ~ has_ppc
+    )) %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "YES" | has_ppc == "NO") %>%
+  ggplot() +
+geom_bar(
+  mapping = aes(x=has_ppc, fill = cope),
+  stat = "count",
+  position = "stack",
+  colour = "black",
+  just = 0.5,
+  width = 0.7,
+  na.rm = FALSE,
+  orientation = NA,
+  show.legend = TRUE,
+  inherit.aes = TRUE
+) +
+  theme_bw() +
+  scale_fill_brewer(palette = "Oranges") +
+  labs(title = "Prominent Journal PPC Acceptance by COPE membership", x = "Accepts PPC", y = "Count", fill = "COPE")
+
+ggsave(filename= "ProminentPPC_policyByCope.png", device= "png")
+```
+
+
+``` {r}
+# Random Sample
+d_journals %>%  
+  filter(sample_id == "random" | sample_id == "both") %>%
+  mutate(has_ppc = case_when(
+    has_ppc == 'ARCHIVE' ~ 'YES',
+    has_ppc == 'NO EXPLICIT' | has_ppc == 'NO IMPLICIT' ~ 'NO',
+    TRUE ~ has_ppc
+    )) %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "YES" | has_ppc == "NO") %>%
+  ggplot() +
+geom_bar(
+  mapping = aes(x=cope, fill = has_ppc),
+  stat = "count",
+  position = "stack",
+  colour = "black",
+  just = 0.5,
+  width = 0.7,
+  na.rm = FALSE,
+  orientation = NA,
+  show.legend = TRUE,
+  inherit.aes = TRUE
+) +
+  theme_bw() +
+  scale_fill_brewer(palette = "Oranges") +
+  labs(title = "Random Journal PPC Acceptance by COPE membership", x = "COPE Member", y = "Count", fill = "PPC")
+
+ggsave(filename= "RandomPPC_policyByCope.png", device= "png")
+```
+
+# Presentation Graph of PPC by Sample
+
+```{r}
+
+library(dplyr)
+library(ggplot2)
+library(forcats)
+
+library(dplyr)
+
+# Duplicate rows with sample_id "both" and rename the duplicates as "Prominent"
+duplicated_prominent_rows <- d_journals %>%
+    mutate(has_ppc = case_when(
+    has_ppc == 'ARCHIVE' | has_ppc == 'NO EXPLICIT' | has_ppc == 'NO IMPLICIT' ~ 'NO',
+    TRUE ~ has_ppc
+  )) %>%
+  filter(ppc_type == "A") %>%
+  filter(is_empirical == TRUE) %>%
+  filter(sample_id == "both") %>%
+  mutate(sample_id = "prominent") 
+
+# Combine the duplicated "Prominent" rows with the original data
+d_journals_processed <- bind_rows(d_journals, duplicated_prominent_rows) %>%
+  mutate(sample_id = recode(sample_id, "prominent" = "Prominent", "random" = "Random"))
+
+# Now, the dataset contains the original "both" rows and their duplicates as "Prominent"
+
+  
+d_journals_processed %>%
+   mutate(has_ppc = case_when(
+    has_ppc == 'ARCHIVE' | has_ppc == 'NO EXPLICIT' | has_ppc == 'NO IMPLICIT' ~ 'NO',
+    TRUE ~ has_ppc
+  )) %>%
+  filter(ppc_type == "A") %>%
+  filter(is_empirical == TRUE) %>%
+  mutate(sample_id = ifelse(sample_id == "both", "Random", sample_id)) %>%
+  ggplot() +
+  geom_bar(
+    mapping = aes(x = has_ppc, fill = sample_id),
+    stat = "count",
+    position = position_dodge(width = 0.8),  # Use position = "dodge" to create side-by-side bars
+    colour = "black",
+    alpha = 0.7,
+    width = 0.7,
+    na.rm = FALSE,
+    orientation = "vertical",
+    show.legend = TRUE,
+    inherit.aes = TRUE
+  ) +
+  geom_text(
+    aes(x = has_ppc, y = ..count.., label = ..count.., group = sample_id),
+    stat = "count",
+    position = position_dodge(width = 0.8),
+    vjust = -0.5,  # Adjust the vertical position of the labels
+    size = 6
+  ) +
+  theme_bw() +
+  ylim(0, 100) +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "Journal PPC Acceptance by Sample",
+       x = "Accepts PPC",
+       y = "Count",
+       fill = "Sample"  # Customize the legend title here
+  ) + 
+  theme(
+    text = element_text(size = 18)  # Increase the font size here
+  )
+
+ggsave(filename = "PPCbySample.png", plot = last_plot(), device = "png")
+```
+
+
+# Articles and Prevalence
+
+# Calculate CIs for NO 
+```{r}
+library(binom)
+
+# Prominent Sample data for linked
+plPPCsuccess <- 1
+rlPPCsuccess <- 0
+linkedSample <- 101
+
+confidence_level <- 0.95
+
+# Calculate the Wilson confidence interval
+ci_plPPC <- binom.confint(plPPCsuccess, linkedSample, method = "wilson", conf.level = confidence_level)
+ci_rlPPC <- binom.confint(rlPPCsuccess, linkedSample, method = "wilson", conf.level = confidence_level)
+
+# Print the confidence interval
+print(ci_plPPC)
+print(ci_rlPPC)
+
+```
+```{r}
+library(dplyr)
+library(ggplot2)
+library(forcats)
+
+# Modify the dataset to ensure "both" values are included in both "Prominent" and "Random"
+d_journals_processed <- d_journals %>%
+  mutate(has_ppc = case_when(
+    has_ppc == 'ARCHIVE' | has_ppc == 'NO EXPLICIT' | has_ppc == 'NO IMPLICIT' ~ 'NO',
+    TRUE ~ has_ppc
+  )) %>%
+  filter(ppc_type == "A") %>%
+  filter(is_empirical == TRUE) %>%
+  mutate(sample_id = fct_recode(sample_id, 
+                                "Prominent" = "prominent", 
+                                "Random" = "random",
+                                "Both" = "both"))
+
+# Create a summary dataset to count "both" values in both "Prominent" and "Random"
+summary_data <- d_journals_processed %>%
+  filter(sample_id %in% c("Prominent", "Random")) %>%
+  group_by(has_ppc, sample_id) %>%
+  summarise(count = sum(count)) %>%
+  ungroup()
+
+# Create the ggplot with count labels
+ggplot(data = summary_data) +
+  geom_bar(
+    mapping = aes(x = has_ppc, y = count, fill = sample_id),
+    stat = "identity",  # Use stat = "identity" to specify y as the count values
+    position = position_dodge(width = 0.8),
+    colour = "black",
+    alpha = 0.7,
+    width = 0.7,
+    na.rm = FALSE,
+    orientation = "vertical",
+    show.legend = TRUE,
+    inherit.aes = TRUE
+  ) +
+  geom_text(
+    aes(x = has_ppc, y = count, label = count, group = sample_id),
+    position = position_dodge(width = 0.8),
+    vjust = -0.5,
+    size = 4
+  ) +
+  theme_bw() +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "Journal PPC Acceptance by Sample",
+       x = "Accepts PPC",
+       y = "Count",
+       fill = "Sample Type"
+  ) + 
+  theme(
+    text = element_text(size = 18)
+  )
+
+# Save the plot
+ggsave(filename = "PPCbySample.png", plot = last_plot(), device = "png")
+
+
+
+```
+# Restriction Statements Graph
+```{r}
+
+table(dj_prominent$ppc_ref)
+table(dj_prominent$ppc_review)
+  
+table(dj_random$ppc_ref)
+table(dj_random$ppc_review)
+```
+
+# Check median and IQR for each field
+```{r}
+
+# Group the tibble by the 'field' column
+prom_grouped <- dj_prom %>% group_by(field)
+
+# Compute summary statistics for 'jif' within each group
+promJIF_stats <- prom_grouped %>%
+  mutate(jif = round(jif, 2)) %>%
+  summarize(
+    mean_jif = mean(jif),
+    median_jif = median(jif),
+    q1_jif = quantile(jif, 0.25),
+    q3_jif = quantile(jif, 0.75),
+    iqr_jif = quantile(jif, 0.75) - quantile(jif, 0.25),
+    count = n()
+  )
+
+# View the summary statistics
+print(promJIF_stats)
+```
+
+#For randomly sampled journals 
+``` {r}
+# Group the tibble by the 'field' column
+rand_grouped <- dj_rand %>% filter(!is.na(jif)) %>% group_by(field)
+
+# Compute summary statistics for 'jif' within each group
+randJIF_stats <- rand_grouped %>%
+  filter(ppc_type == "A") %>%
+  filter(is_empirical == "TRUE") %>%
+  mutate(jif = round(jif, 2)) %>%
+  summarize(
+    mean_jif = mean(jif),
+    median_jif = median(jif),
+    q1_jif = quantile(jif, 0.25),
+    q3_jif = quantile(jif, 0.75),
+    iqr_jif = quantile(jif, 0.75) - quantile(jif, 0.25),
+    count = n()
+  )
+
+# View the summary statistics
+print(randJIF_stats)
+
+dj_rand %>%
+   filter(!is.na(jif)) %>%
+  mutate(jif = round(jif, 2)) %>%
+  summarize(
+    mean_jif = mean(jif),
+    median_jif = median(jif),
+    q1_jif = quantile(jif, 0.25),
+    q3_jif = quantile(jif, 0.75),
+    iqr_jif = quantile(jif, 0.75) - quantile(jif, 0.25),
+    count = n()
+  )
+  
+
+```
+```{r}
+count_non_missing <- sum(!is.na(dj_prominent$ppc_length))
+cat("Count of non-missing values in ppc_length:", count_non_missing, "\n")
+```
+
+
+# View median and IQR for quantitavtive 'Commentary' limits in prominent journals
+```{r}
+
+promCom_stats <- dj_prominent %>%
+  filter(ppc_name == "Commentary") %>%
+  mutate(
+    ppc_length = as.numeric(replace(ppc_length, ppc_length %in% c("Qualitative", "NOT STATED"), NA)),
+    ppc_time = as.numeric(replace(ppc_time, ppc_time %in% c("Qualitative", "NOT STATED"), NA)),
+    ppc_ref = as.numeric(replace(ppc_ref, ppc_ref %in% c("Qualitative", "NOT STATED"), NA))
+  ) %>%
+  summarize(
+    mdLength = median(ppc_length, na.rm = TRUE),
+    mdTime = median(ppc_time, na.rm = TRUE),
+    mdRef = median(ppc_ref, na.rm = TRUE),
+    q1_length = quantile(ppc_length, 0.25, na.rm = TRUE),
+    q3_length = quantile(ppc_length, 0.75, na.rm = TRUE),
+    iqr_length = quantile(ppc_length, 0.75, na.rm = TRUE) - quantile(ppc_length, 0.25, na.rm = TRUE),
+    q1_time = quantile(ppc_time, 0.25, na.rm = TRUE),
+    q3_time = quantile(ppc_time, 0.75, na.rm = TRUE),
+    iqr_time = quantile(ppc_time, 0.75, na.rm = TRUE) - quantile(ppc_time, 0.25, na.rm = TRUE),
+    q1_ref = quantile(ppc_ref, 0.25, na.rm = TRUE),
+    q3_ref = quantile(ppc_ref, 0.75, na.rm = TRUE),
+    iqr_ref = quantile(ppc_ref, 0.75, na.rm = TRUE) - quantile(ppc_ref, 0.25, na.rm = TRUE),
+    peer_rev = sum(ppc_review == "YES"),
+    COPE = sum(cope == "TRUE")
+  )
+
+print(promCom_stats)
+
+```
+# View median and IQR for quantitavtive 'Letters' limits in prominent journals
+```{r}
+promLet_stats <- dj_prominent %>%
+  filter(ppc_name == "Letters") %>%
+  mutate(
+    ppc_length = as.numeric(ppc_length),  # Convert ppc_length to numeric
+    ppc_time = as.numeric(ppc_time),      # Convert ppc_time to numeric
+    ppc_ref = as.numeric(ppc_ref)         # Convert ppc_ref to numeric
+  ) %>%
+  summarize(
+    mdLength = median(ppc_length, na.rm = TRUE),
+    mdTime = median(ppc_time, na.rm = TRUE),
+    mdRef = median(ppc_ref, na.rm = TRUE),
+    q1_length = quantile(ppc_length, 0.25, na.rm = TRUE),
+    q3_length = quantile(ppc_length, 0.75, na.rm = TRUE),
+    iqr_length = quantile(ppc_length, 0.75, na.rm = TRUE) - quantile(ppc_length, 0.25, na.rm = TRUE),
+    q1_time = quantile(ppc_time, 0.25, na.rm = TRUE),
+    q3_time = quantile(ppc_time, 0.75, na.rm = TRUE),
+    iqr_time = quantile(ppc_time, 0.75, na.rm = TRUE) - quantile(ppc_time, 0.25, na.rm = TRUE),
+    q1_ref = quantile(ppc_ref, 0.25, na.rm = TRUE),
+    q3_ref = quantile(ppc_ref, 0.75, na.rm = TRUE),
+    iqr_ref = quantile(ppc_ref, 0.75, na.rm = TRUE) - quantile(ppc_ref, 0.25, na.rm = TRUE),
+    peer_rev = sum(ppc_review == "YES"),
+    COPE = sum(cope == "TRUE")
+  )
+  
+print(promLet_stats)
+```
+# View median and IQR for ALL quantitavtive limits in PROMINENT journals
+```{r}
+
+promAll_stats <- dj_prominent %>%
+  filter(ppc_name == "Commentary" | ppc_name == "Letters") %>%
+  mutate(
+    ppc_length = as.numeric(replace(ppc_length, ppc_length %in% c("Qualitative", "NOT STATED"), NA)),
+    ppc_time = as.numeric(replace(ppc_time, ppc_time %in% c("Qualitative", "NOT STATED"), NA)),
+    ppc_ref = as.numeric(replace(ppc_ref, ppc_ref %in% c("Qualitative", "NOT STATED"), NA))
+  ) %>%
+  summarize(
+    mdLength = median(ppc_length, na.rm = TRUE),
+    mdTime = median(ppc_time, na.rm = TRUE),
+    mdRef = median(ppc_ref, na.rm = TRUE),
+    q1_length = quantile(ppc_length, 0.25, na.rm = TRUE),
+    q3_length = quantile(ppc_length, 0.75, na.rm = TRUE),
+    iqr_length = quantile(ppc_length, 0.75, na.rm = TRUE) - quantile(ppc_length, 0.25, na.rm = TRUE),
+    q1_time = quantile(ppc_time, 0.25, na.rm = TRUE),
+    q3_time = quantile(ppc_time, 0.75, na.rm = TRUE),
+    iqr_time = quantile(ppc_time, 0.75, na.rm = TRUE) - quantile(ppc_time, 0.25, na.rm = TRUE),
+    q1_ref = quantile(ppc_ref, 0.25, na.rm = TRUE),
+    q3_ref = quantile(ppc_ref, 0.75, na.rm = TRUE),
+    iqr_ref = quantile(ppc_ref, 0.75, na.rm = TRUE) - quantile(ppc_ref, 0.25, na.rm = TRUE),
+    peer_rev = sum(ppc_review == "YES"),
+    COPE = sum(cope == "TRUE"),
+    count = n()
+  )
+
+print(promAll_stats)
+
+```
+
+# View median and IQR for quantitavtive 'Commentary' limits in Random journals
+```{r}
+
+randCom_stats <- dj_random %>%
+  filter(ppc_name == "Commentary") %>%
+  mutate(
+    ppc_length = as.numeric(replace(ppc_length, ppc_length %in% c("Qualitative", "NOT STATED"), NA)),
+    ppc_time = as.numeric(replace(ppc_time, ppc_time %in% c("Qualitative", "NOT STATED"), NA)),
+    ppc_ref = as.numeric(replace(ppc_ref, ppc_ref %in% c("Qualitative", "NOT STATED"), NA))
+  ) %>%
+ summarize(
+    mdLength = median(ppc_length, na.rm = TRUE),
+    mdTime = median(ppc_time, na.rm = TRUE),
+    mdRef = median(ppc_ref, na.rm = TRUE),
+    q1_length = quantile(ppc_length, 0.25, na.rm = TRUE),
+    q3_length = quantile(ppc_length, 0.75, na.rm = TRUE),
+    iqr_length = quantile(ppc_length, 0.75, na.rm = TRUE) - quantile(ppc_length, 0.25, na.rm = TRUE),
+    q1_time = quantile(ppc_time, 0.25, na.rm = TRUE),
+    q3_time = quantile(ppc_time, 0.75, na.rm = TRUE),
+    iqr_time = quantile(ppc_time, 0.75, na.rm = TRUE) - quantile(ppc_time, 0.25, na.rm = TRUE),
+    q1_ref = quantile(ppc_ref, 0.25, na.rm = TRUE),
+    q3_ref = quantile(ppc_ref, 0.75, na.rm = TRUE),
+    iqr_ref = quantile(ppc_ref, 0.75, na.rm = TRUE) - quantile(ppc_ref, 0.25, na.rm = TRUE),
+    peer_rev = sum(ppc_review == "YES"),
+    COPE = sum(cope == "TRUE")
+  )
+
+print(randCom_stats)
+
 ```
 
 
 
+# View median and IQR for quantitavtive 'Letters' limits in RANDOM journals
+```{r}
+randLet_stats <- dj_random %>%
+  filter(ppc_name == "Letters") %>%
+  mutate(
+    ppc_length = as.numeric(ppc_length),  # Convert ppc_length to numeric
+    ppc_time = as.numeric(ppc_time),      # Convert ppc_time to numeric
+    ppc_ref = as.numeric(ppc_ref)         # Convert ppc_ref to numeric
+  ) %>%
+ summarize(
+    mdLength = median(ppc_length, na.rm = TRUE),
+    mdTime = median(ppc_time, na.rm = TRUE),
+    mdRef = median(ppc_ref, na.rm = TRUE),
+    q1_length = quantile(ppc_length, 0.25, na.rm = TRUE),
+    q3_length = quantile(ppc_length, 0.75, na.rm = TRUE),
+    iqr_length = quantile(ppc_length, 0.75, na.rm = TRUE) - quantile(ppc_length, 0.25, na.rm = TRUE),
+    q1_time = quantile(ppc_time, 0.25, na.rm = TRUE),
+    q3_time = quantile(ppc_time, 0.75, na.rm = TRUE),
+    iqr_time = quantile(ppc_time, 0.75, na.rm = TRUE) - quantile(ppc_time, 0.25, na.rm = TRUE),
+    q1_ref = quantile(ppc_ref, 0.25, na.rm = TRUE),
+    q3_ref = quantile(ppc_ref, 0.75, na.rm = TRUE),
+    iqr_ref = quantile(ppc_ref, 0.75, na.rm = TRUE) - quantile(ppc_ref, 0.25, na.rm = TRUE),
+    peer_rev = sum(ppc_review == "YES"),
+    COPE = sum(cope == "TRUE")
+  )
+  
+print(randLet_stats)
+```
+
+# View median and IQR for ALL quantitavtive limits in RANDOM journals
+```{r}
+
+randAll_stats <- dj_random %>%
+  filter(ppc_name == "Commentary" | ppc_name == "Letters" | ppc_name == "Other") %>%
+  mutate(
+    ppc_length = as.numeric(replace(ppc_length, ppc_length %in% c("Qualitative", "NOT STATED"), NA)),
+    ppc_time = as.numeric(replace(ppc_time, ppc_time %in% c("Qualitative", "NOT STATED"), NA)),
+    ppc_ref = as.numeric(replace(ppc_ref, ppc_ref %in% c("Qualitative", "NOT STATED"), NA))
+  ) %>%
+  summarize(
+    mdLength = median(ppc_length, na.rm = TRUE),
+    mdTime = median(ppc_time, na.rm = TRUE),
+    mdRef = median(ppc_ref, na.rm = TRUE),
+    q1_length = quantile(ppc_length, 0.25, na.rm = TRUE),
+    q3_length = quantile(ppc_length, 0.75, na.rm = TRUE),
+    iqr_length = quantile(ppc_length, 0.75, na.rm = TRUE) - quantile(ppc_length, 0.25, na.rm = TRUE),
+    q1_time = quantile(ppc_time, 0.25, na.rm = TRUE),
+    q3_time = quantile(ppc_time, 0.75, na.rm = TRUE),
+    iqr_time = quantile(ppc_time, 0.75, na.rm = TRUE) - quantile(ppc_time, 0.25, na.rm = TRUE),
+    q1_ref = quantile(ppc_ref, 0.25, na.rm = TRUE),
+    q3_ref = quantile(ppc_ref, 0.75, na.rm = TRUE),
+    iqr_ref = quantile(ppc_ref, 0.75, na.rm = TRUE) - quantile(ppc_ref, 0.25, na.rm = TRUE),
+    peer_rev = sum(ppc_review == "YES"),
+    COPE = sum(cope == "TRUE"),
+    count = n()
+  )
+
+print(randAll_stats)
+
+```
 
 
+COMPARING SAMPLES TO EACH OTHER ON PPC ACCEPTANCE
+```{r}
+
+dj_prom %>%
+mutate(has_ppc = case_when(
+    has_ppc == 'ARCHIVE' | has_ppc == 'NO EXPLICIT' | has_ppc == 'NO IMPLICIT' ~ 'NO',
+    TRUE ~ has_ppc
+  ))
+
+dj_rand %>%
+  mutate(has_ppc = case_when(
+    has_ppc == 'ARCHIVE' | has_ppc == 'NO EXPLICIT' | has_ppc == 'NO IMPLICIT' ~ 'NO',
+    TRUE ~ has_ppc
+  ))
 
 
+chisq.test(x=dj_prom$has_ppc, y=dj_rand$has_ppc)
 
+prop.test()
+
+```
+```{r}
+# Sample data
+yes_prom <- 38  # Number of "yes" responses in Sample 1 (dj_prom)
+yes_rand <- 23  # Number of "yes" responses in Sample 2 (dj_rand)
+
+# Total number of observations in each sample (assuming 100)
+n_prom <- 100
+n_rand <- 100
+
+# Perform the proportion test
+test_result <- prop.test(x = c(yes_prom, yes_rand), n = c(n_prom, n_rand), alternative = "two.sided")
+
+# Print the test result
+print(test_result)
+
+```
+ 
+ 
