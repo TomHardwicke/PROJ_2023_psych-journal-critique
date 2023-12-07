@@ -24,4 +24,4 @@ Note: The journal listed as INTERNATIONAL JOURNAL OF TRANSGENDERISM in the promi
 We also applied a date range filter using a publication date range of 2020-01-01 to 2020-12-31.
 NB - WOS uses 'early access' publication dates for this search. So some articles that are ultimately published after 2020 may still be included if they were e.g., published online first in 2020.
 
-4. We used the 'Fast5000' feature to export the records output by the search. The maximum number of records that can be export is 5000 at a time. Thus, it was necessary perform 12 exports to download all 61,735 records. This resulted in the 12 files titled **savedrecs.txt (where ** ranges from 00 to 12). The files were downloaded on April 19, 2023. 
+4. We used the 'Fast5000' feature to export the records output by the search. The maximum number of records that can be export is 5000 at a time. Thus, it was necessary perform 3 exports to download all 12,255 records. This resulted in the 3 files titled **savedrecs.txt (where ** ranges from 00 to 12). The files were downloaded on July 17, 2023. 
