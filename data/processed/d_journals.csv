@@ -594,7 +594,7 @@ prominent,PSYCHOLOGICAL BULLETIN,TRUE,NO EXPLICIT,C,NA,NA,NA,NA,NA,NA,TRUE,Gener
 prominent,PSYCHOLOGICAL INQUIRY,FALSE,NA,A,NA,NA,NA,NA,NA,NA,TRUE,Multidisciplinary,5.581
 prominent,PSYCHOLOGICAL INQUIRY,FALSE,NA,B,NA,NA,NA,NA,NA,NA,TRUE,Multidisciplinary,5.581
 prominent,PSYCHOLOGICAL INQUIRY,FALSE,NA,C,NA,NA,NA,NA,NA,NA,TRUE,Multidisciplinary,5.581
-prominent,PSYCHOLOGICAL MEDICINE,TRUE,YES,A,Letters,Correspondence papers must be in response to content published in Psychological Magazine,1500,NOT STATED,max 20,NOT STATED,TRUE,General,10.592
+prominent,PSYCHOLOGICAL MEDICINE,TRUE,YES,A,Letters,Correspondence papers must be in response to content published in Psychological Magazine,1500,NOT STATED,20,NOT STATED,TRUE,General,10.592
 prominent,PSYCHOLOGICAL MEDICINE,TRUE,YES,B,NA,NA,NA,NA,NA,NA,TRUE,General,10.592
 prominent,PSYCHOLOGICAL MEDICINE,TRUE,YES,C,NA,NA,NA,NA,NA,NA,TRUE,General,10.592
 prominent,PSYCHOLOGICAL METHODS,TRUE,NO IMPLICIT,A,NA,NA,NA,NA,NA,NA,TRUE,Multidisciplinary,10.929
