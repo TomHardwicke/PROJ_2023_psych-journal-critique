@@ -1,0 +1,596 @@
+---
+title: A Descriptive Analysis of How Psychology Journals Handle Post-Publication
+  Critiques
+format:
+  pdf: default
+  journal: "sn-nature-human-behaviour"
+  keep-tex: true
+author:
+  - name: Annie Whamond
+    affiliations:
+      - name: University of Melbounre
+        id: 1
+        department: Melbourne School of Psychological Sciences
+        address: 161 Barry St
+        city: Carlton
+        state: VIC
+        postal-code: 3010
+    email: whamonda@unimelb.edu.au
+    corresponding: true
+  - name: Simine Vazire
+    affiliations:
+      - ref: 1
+  - name: Beth Clarke
+    affiliations:
+      - ref: 1
+  - name: Nicholas Moodie
+    affiliations:
+      - ref: 1
+  - name: Sarah Schiavone
+    affiliations:
+      - ref: 1
+  - name: Robert T. Thibault
+    affiliations:
+      - name: Stanford University
+        id: 2
+        department: Meta Research Innovation Centre
+        address: 450 Jane Stanford Way
+        city: Stanford
+        state: CA
+        postal-code: 94305
+  - name: Tom E. Hardwicke
+    affiliations:
+      - ref: 1
+abstract: >
+  Fostering critical discussion is essential to upholding the ethos of
+  science as an unbiased, collaborative, and self-correcting endeavor. Journals
+  can support this by offering options for post-publication critique, such as
+  commentaries or letters, allowing peers to voice substantiated concerns of
+  empirical articles. We provide a descriptive, cross-sectional analysis of
+  post-publication critique policies and prevalence across both prominent
+  randomly-selected and psychology journals. We found that, overall, the
+  majority of psychology journals do not offer explicit options for
+  post-publication critique. When they did, length and time-to-submit limits
+  were often not stated. Critique prevalence was rare with only a single event
+  identified. Given the widespread recognition of the replication crisis in
+  psychology, allowing avenues for criticisms to be voiced may help increase the
+  credibility within the field. To support transparency and self-correction,
+  psychology journals should offer clearly stated post-publication critique
+  options and encourage their use.
+keywords:
+  - metascience
+  - post-publication cretique
+  - psychology
+  - credibility
+bibliography: bibliography.bib
+
+---
+
+
+```{r}
+library(papaja) # article template
+library(tidyverse)
+library(ggplot2) # figure creation
+library(RColorBrewer) # data visualisation
+library(dplyr)
+library(kableExtra) # for tables
+library(knitr) # for literate programming
+library(janitor) # for data munging
+library(tidylog) # for inline code feedback
+library(here) # for finding files
+```
+
+```{r}
+source(here('analysis','functions.R')) # load custom functions
+source(here('analysis','raw_to_primary.R')) # converts raw data to primary data
+```
+
+```{r}
+# Load processed data files
+
+d_articles <- read_csv(here('ProjCode', 'GitClone', 'PROJ_2023_psych-journal-critique', 'data','processed','d_articles.csv'), show_col_types = F) # article data 
+d_journals <- read_csv(here('ProjCode', 'GitClone', 'PROJ_2023_psych-journal-critique','data','processed','d_journals.csv'), show_col_types = F) # journal data 
+```
+
+```{r}
+# Create separate tibbles for Prominent and Randomly-selected journal samples
+
+dj_prominent <- d_journals %>%
+  filter(sample_id != "random") %>%
+  filter(is_empirical == TRUE)
+
+dj_random <- d_journals %>%
+  filter(sample_id != "prominent") %>%
+  filter(is_empirical == TRUE)
+```
+
+
+
+# Main
+
+# Results
+
+## Journal Policy
+
+For descriptive statistics on journal subdisciplines, post-publication critique acceptance, and COPE membership for both prominent and randomly-selected samples, see Supplemetary Information ##. A full list of the journals included in this study, along with their post-publication critique options and restrictions, is provided in Supplemetary Information ##.
+
+## Prominent Psychology Journals
+
+```{r journal-characteristics}
+
+# below we ascertain journal JIF characteristics
+
+promJournalCharacteristics <- dj_prominent %>% 
+  filter(ppc_type == "A") %>%
+  summarise(promMedian_jif = round(median(jif),2),
+            promMin_jif = round(min(jif),2),
+            promMax_jif = round(max(jif),2),
+            promIQR_jif = round(IQR(jif),2)
+  )
+  
+  
+
+```
+
+In our sample of 100 prominent journals, the median 2021 Journal Impact Factor was `r promJournalCharacteristics %>% pull(promMedian_jif)` (IQR = `r promJournalCharacteristics %>% pull(promIQR_jif)`, range = `r promJournalCharacteristics %>% pull(promMin_jif)` - `r promJournalCharacteristics %>% pull(promMax_jif)`). As this represents the entire population of interest for this section of the study, confidence intervals (CIs) are not included for this section of the study. Figure *XX* shows theobserved journal policies and, of the explicitly offered critique options identified, how restrictions on length and time-to-submit were stated.
+
+### *Post-Publication Critique Policy and Restriction Statements in Prominent Psychology Journals*
+
+```{r, echo = FALSE}
+# Filter and transform restrictions for ppc_length
+prominent_length_data <- dj_prominent %>%
+  filter(!is.na(ppc_name)) %>%
+  filter(has_ppc != "ARCHIVE") %>% # removes Archive Only PPC types
+  mutate(ppc_length = case_when(
+    ppc_length %in% c(1000, 1100, 1200, 1500, 2000, 2500, 2650, 3000, 3500, 400, 500, 5000, 750, 800, 8000) ~ 'Quantitative',
+    ppc_length == "NOT STATED" ~ "Not Stated",
+    TRUE ~ 'Qualitative' # Summarises all length limits as 'Quantitative', 'Qualitative', or 'Not Stated'
+  )) %>% 
+  group_by(ppc_length) %>%
+  summarise(count = n())
+
+# Filter and transform restrictions for ppc_time
+prominent_time_data <- dj_prominent %>%
+  filter(!is.na(ppc_name)) %>%
+  filter(has_ppc != "ARCHIVE") %>%
+  mutate(ppc_time = case_when(
+    ppc_time %in% c(13.05, 26.1, 39.15, 4, 52) ~ 'Quantitative',
+    ppc_time == "NOT STATED" ~ "Not Stated",
+    TRUE ~ 'Qualitative' # Summarises all time limits as 'Quantitative', 'Qualitative', or 'Not Stated'
+  )) %>%
+  group_by(ppc_time) %>%
+  summarise(count = n())
+
+# Combine the data and unite the columns
+combined_data <- bind_rows(
+  prominent_length_data %>% mutate(Code = "Length"),
+  prominent_time_data %>% mutate(Code = "Time-to-submit")
+) %>%
+unite(limits, ppc_length, ppc_time) %>%
+  mutate(limits = case_when(limits == "Not Stated_NA" ~ "Not Stated",
+                   limits == "Qualitative_NA" ~ "Qualitative",
+                   limits == "Quantitative_NA" ~ "Quantitative",
+                   limits == "NA_Not Stated" ~ "Not Stated",
+                   limits == "NA_Qualitative" ~ "Qualitative",
+                   limits == "NA_Quantitative" ~ "Quantitative",
+                   TRUE ~ as.character(limits)
+                   ))
+
+
+# Create the first graph
+graph1 <- ggplot(combined_data, aes(x = Code, y = count, fill = limits)) +
+  geom_bar(stat = "identity", 
+           position = "stack",
+           colour = "black") +
+  theme_bw() +
+  scale_fill_brewer(palette = "Blues") +
+  labs(x = "Restriction Type", y = "Count", fill = "Restrictions")
+
+# Create the second graph
+graph2 <- dj_prominent %>%
+  filter(ppc_type == "A") %>% # Keeps only first PPC row for each journal
+  filter(!is.na(has_ppc)) %>%
+  mutate(has_ppc = case_when(
+    has_ppc == 'ARCHIVE' ~ 'Archive',
+    has_ppc == 'NO EXPLICIT' ~ 'No Explicit',
+    has_ppc == 'NO IMPLICIT' ~ 'No Implicit',
+    has_ppc == 'YES' ~ 'Yes',
+    TRUE ~ has_ppc
+  )) %>%
+  group_by(has_ppc) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = count / sum(count) * 100) %>%
+  ggplot(aes(x = "", y = count, fill = has_ppc)) +
+  geom_bar(stat = "identity",
+           colour = "black") +
+  theme_bw() +
+  scale_fill_brewer(palette = "Oranges") +
+  labs(x = "Journal Policy", y = "Count", fill = "Accepts PPC")
+
+# Arrange both graphs in the same figure
+combined_plots <- graph2 + graph1
+combined_plots
+
+```
+
+*Note.* PPC = post-publication critique. Orange bar (left) indicates policy statements for each journal included in sample (n = 100). Blue bars (right) indicate how length and time-to-submit restrictions were stated in cases where journals had explicit post-publication critique policies in place (n = 41). Implicit acceptance denoted by archival examples of critiques despite absence of stated policy.
+
+```{r}
+# Length restriction statement types of explicit PPC types (prominent sample)
+
+# Calculate the count and percentage for "Quantitative"
+prom_quantitative_length <- prominent_length_data %>%
+ filter(ppc_length == "Quantitative") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(prominent_length_data$count) * 100)
+
+# Calculate the count and percentage for "Qualitative"
+prom_qualitative_length <- prominent_length_data %>%
+ filter(ppc_length == "Qualitative") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(prominent_length_data$count) * 100)
+
+# Calculate the count and percentage for "Not Stated"
+prom_notStated_length <- prominent_length_data %>%
+ filter(ppc_length == "Not Stated") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(prominent_length_data$count) * 100)
+
+# Range
+prom_length_range <- dj_prominent %>%
+  filter(!is.na(ppc_length)) %>%
+  filter(ppc_length != "Qualitative") %>%
+  filter(ppc_length != "NOT STATED") %>%
+  mutate(ppc_length = as.numeric(ppc_length)) %>%
+  summarise(prom_median_length = median(ppc_length),
+            prom_min_length = min(ppc_length),
+            prom_max_length = max(ppc_length)
+            )
+  
+
+# Time-to-submit restriction statement types of explicit PPC types (prominent sample)
+
+# Calculate the count and percentage for "Quantitative"
+prom_quantitative_time <- prominent_time_data %>%
+ filter(ppc_time == "Quantitative") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(prominent_time_data$count) * 100)
+
+# Calculate the count and percentage for "Qualitative"
+prom_qualitative_time <- prominent_time_data %>%
+ filter(ppc_time == "Qualitative") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(prominent_time_data$count) * 100)
+
+# Calculate the count and percentage for "Not Stated"
+prom_notStated_time <- prominent_time_data %>%
+ filter(ppc_time == "Not Stated") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(prominent_time_data$count) * 100)
+
+# Range
+prom_time_range <- dj_prominent %>%
+  filter(!is.na(ppc_time)) %>%
+  filter(ppc_time != "Qualitative") %>%
+  filter(ppc_time != "NOT STATED") %>%
+  mutate(ppc_time = as.numeric(ppc_time)) %>%
+  summarise(prom_median_time = median(ppc_time),
+            prom_min_time = min(ppc_time),
+            prom_max_time = max(ppc_time)
+            )
+
+
+# Reference restriction statement types of explicit PPC types (prominent sample)
+prominent_ref_data <- dj_prominent %>%
+  filter(!is.na(ppc_name)) %>% # keep only entries that identify PPC option
+  filter(has_ppc != "ARCHIVE") %>% # remove implicit yes examples
+  mutate(ppc_ref = case_when(
+    ppc_ref %in% c(10, 15, 20, 5) ~ 'Quantitative',
+    ppc_ref == "NOT STATED" ~ "Not Stated",
+    TRUE ~ 'Qualitative' # Summarises all time limits as 'Quantitative', 'Qualitative', or 'Not Stated'
+  )) %>%
+  group_by(ppc_ref) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+
+# Calculate the count and percentage for "Quantitative"
+prom_quantitative_ref <- prominent_ref_data %>%
+ filter(ppc_ref == "Quantitative") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(prominent_ref_data$count) * 100)
+
+# Calculate the count and percentage for "Not Stated"
+prom_notStated_ref <- prominent_ref_data %>%
+ filter(ppc_ref == "Not Stated") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(prominent_ref_data$count) * 100)
+
+# Range
+prom_ref_range <- dj_prominent %>%
+  filter(!is.na(ppc_ref)) %>%
+  filter(ppc_ref != "Qualitative") %>%
+  filter(ppc_ref != "NOT STATED") %>%
+  mutate(ppc_ref = as.numeric(ppc_ref)) %>%
+  summarise(prom_median_ref = median(ppc_ref),
+            prom_min_ref = min(ppc_ref),
+            prom_max_ref = max(ppc_ref)
+            )
+
+# Peer-review statements of explicit PPC types (prominent sample)
+prominent_review_data <- dj_prominent %>%
+  filter(!is.na(ppc_review)) %>% # keep only entries that identify PPC option
+  filter(has_ppc != "ARCHIVE") %>% # remove implicit yes examples
+  mutate(ppc_review = case_when(
+    ppc_review == 'YES' ~ 'Yes',
+    ppc_review == 'NO' ~ 'No',
+    ppc_review == "NOT STATED" ~ "Not Stated"
+  )) %>%
+  group_by(ppc_review) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+# Calculate the count and percentage for "Yes"
+prom_yes_review <- prominent_review_data %>%
+ filter(ppc_review == "Yes") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(prominent_review_data$count) * 100)
+
+# Calculate the count and percentage for "No"
+prom_no_review <- prominent_review_data %>%
+ filter(ppc_review == "No") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(prominent_review_data$count) * 100)
+
+# Calculate the count and percentage for "Not Stated"
+prom_notStated_review <- prominent_review_data %>%
+ filter(ppc_review == "Not Stated") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(prominent_review_data$count) * 100)
+
+
+```
+
+
+  As shown in Figure *XX*, post-publication critique policies were explicitly stated by `r dj_prominent %>% filter(ppc_type == "A") %>% summarise(percentage = sum(has_ppc == "YES") / n() * 100)` of journals, and we inferred that they were implicitly accepted (as denoted by archival examples) in `r dj_prominent %>% filter(ppc_type == "A") %>% summarise(percentage = sum(has_ppc == "ARCHIVE") / n() * 100)` of journals. `r dj_prominent %>% filter(ppc_type == "A") %>% summarise(percentage = sum(has_ppc == "NO IMPLICIT") / n() * 100)` had no advertised post-publication critique policy, and `r dj_prominent %>% filter(ppc_type == "A") %>% summarise(percentage = sum(has_ppc == "NO EXPLICIT") / n() * 100)` of journals explicitly stated that they did not accept critiques (*Clinical Psychology: Science and Practice and Psychological Bulletin*). `r dj_prominent %>% filter(ppc_type == "B" & !is.na(ppc_name)) %>% summarise(percentage = sum(!is.na(ppc_name) / n() * 100))` of journals accepted two types (commentaries and letters); *International Journal of Mental Health and Addiction*, *Journal of Environmental Psychology*, and *Psychological Science*. 
+    Among the 41 explicitly stated post-publication critique options, restrictions on length were quantitatively stated (e.g., '1,000 words') in `r print(paste(prom_quantitative_length$count, "(", round(prom_quantitative_length$percentage), "%)", sep = ""))` cases, qualitatively stated (e.g. 'brief') in  `r print(paste(prom_qualitative_length$count, "(", round(prom_qualitative_length$percentage), "%)", sep = ""))` cases, and not stated in `r print(paste(prom_notStated_length$count, "(", round(prom_notStated_length$percentage), "%)", sep = ""))` cases. Time-to-submit was quantitatively stated (e.g., '4 weeks') in `r print(paste(prom_quantitative_time$count, "(", round(prom_quantitative_time$percentage), "%)", sep = ""))` cases, qualitatively stated (e.g., 'timely') in `r print(paste(prom_qualitative_time$count, "(", round(prom_qualitative_time$percentage), "%)", sep = ""))` cases, and not stated in `r print(paste(prom_notStated_time$count, "(", round(prom_notStated_time$percentage), "%)", sep = ""))` cases. Number of references allowed was quantitatively stated (e.g., 'max 20') in `r print(paste(prom_quantitative_ref$count, "(", round(prom_quantitative_ref$percentage), "%)", sep = ""))` cases and not stated in `r print(paste(prom_notStated_ref$count, "(", round(prom_notStated_ref$percentage), "%)", sep = ""))`. Whether critiques were sent for external peer-review was only stated in `r print(paste((prom_yes_review$count + prom_no_review$count), "(", round(prom_yes_review$percentage + prom_no_review$percentage), "%)", sep = ""))` cases, in `r print(paste(prom_yes_review$count, "(", round(prom_yes_review$percentage), "%)", sep = ""))` cases this was in the affirmative. 
+    When stated quantitatively, length limits ranged from `r prom_length_range %>% pull(prom_min_length)` - `r prom_length_range %>% pull(prom_max_length)` words, time-to-submit limits ranged from `r prom_time_range %>% pull(prom_min_time)` -`r prom_time_range %>% pull(prom_max_time)` weeks, reference limits ranged between `r prom_ref_range %>% pull(prom_min_ref)` -`r prom_ref_range %>% pull(prom_max_ref)`. Table *XX* shows descriptive statistics for stated quantitative restrictions, broken down by critique type.
+    
+### Table *XX*
+
+As expected, results in Table 1 show that commentaries were generally less restrictive on length with the median word limit being 2.5 times that of letters. The median number of references allowed was 1.5 times greater in commentaries compared to letters. Commentaries were also 3.3 times more likely to be sent for peer-review. Interestingly, time-to-submit was less restrictive for letters than commentaries, however, this was only reported in two and four cases (respectively) so limited inferences can be made from this.
+
+## Randomly-selected Psychology Journals
+```{r journal-characteristics}
+
+# below we ascertain journal JIF characteristics
+
+randJournalCharacteristics <- dj_random %>% 
+  filter(ppc_type == "A") %>%
+  filter(!is.na(jif)) %>%
+  summarise(randMedian_jif = round(median(jif),2),
+            randMin_jif = round(min(jif),2),
+            randMax_jif = round(max(jif),2),
+            randIQR_jif = round(IQR(jif),2)
+  )
+  
+
+```
+Amongst our sample of 100 randomly-selected psychology journals, Journal Impact Factor data was unavailable for 25 journals. Median 2021 Journal Impact Factor was `r randJournalCharacteristics %>% pull(randMedian_jif)` (IQR = `r randJournalCharacteristics %>% pull(randIQR_jif)`, range = `r randJournalCharacteristics %>% pull(randMin_jif)` - `r randJournalCharacteristics %>% pull(randMax_jif)`). Figure *XX* shows the observed journal policies and, of the explicitly offered critique options identified, how restrictions on length and time-to-submit were stated.
+
+### Figure *XX*: *Post-Publication Critique Policy and Restriction Statements in Randomly-selected Psychology Journals*
+```{r}
+# Create and combine restiction statement graphs with ppc acceptance (random sample)
+
+# Filter and process data for ppc_length
+random_length_data <- d_journals %>%
+  filter(sample_id %in% c("random", "both")) %>%
+  filter(!is.na(ppc_name)) %>%
+  filter(has_ppc != "ARCHIVE") %>%
+  mutate(ppc_length = case_when(
+    ppc_length %in% c(1000, 1100, 1200, 1500, 2000, 2500, 2650, 3000, 3500, 400, 500, 5000, 750, 800, 8000) ~ 'Quantitative',
+    ppc_length == "NOT STATED" ~ "Not Stated",
+    TRUE ~ 'Qualitative'
+  )) %>%
+  group_by(ppc_length) %>%
+  summarise(count = n())
+
+# Filter and process data for ppc_time
+random_time_data <- d_journals %>%
+  filter(sample_id %in% c("random", "both")) %>%
+  filter(!is.na(ppc_name)) %>%
+  filter(has_ppc != "ARCHIVE") %>%
+  mutate(ppc_time = case_when(
+    ppc_time %in% c(13.05, 26.1, 39.15, 4, 52) ~ 'Quantitative',
+    ppc_time == "NOT STATED" ~ "Not Stated",
+    TRUE ~ 'Qualitative'
+  )) %>%
+  group_by(ppc_time) %>%
+  summarise(count = n())
+
+# Combine the data and unite the columns
+combined_data_random <- bind_rows(
+  random_length_data %>% mutate(Code = "Length"),
+  random_time_data %>% mutate(Code = "Time-to-submit")
+) %>%
+unite(limits, ppc_length, ppc_time) %>%
+  mutate(limits = case_when(limits == "Not Stated_NA" ~ "Not Stated",
+                   limits == "Qualitative_NA" ~ "Qualitative",
+                   limits == "Quantitative_NA" ~ "Quantitative",
+                   limits == "NA_Not Stated" ~ "Not Stated",
+                   limits == "NA_Qualitative" ~ "Qualitative",
+                   limits == "NA_Quantitative" ~ "Quantitative",
+                   TRUE ~ as.character(limits)
+                   ))
+
+
+# Create the first graph
+graph4 <- ggplot(combined_data_random, aes(x = Code, y = count, fill = limits)) +
+  geom_bar(stat = "identity", 
+           position = "stack",
+           colour = "black") +
+  theme_bw() +
+  scale_fill_brewer(palette = "Blues") +
+  labs(x = "Restriction Type", y = "Count", fill = "Restrictions")
+
+# Create the second graph
+graph3 <- d_journals %>%
+  filter(sample_id == "random" | sample_id == "both") %>%
+  filter(ppc_type == "A") %>%
+  filter(!is.na(has_ppc)) %>%
+  mutate(has_ppc = case_when(
+    has_ppc == 'ARCHIVE' ~ 'Archive',
+    has_ppc == 'NO EXPLICIT' ~ 'No Explicit',
+    has_ppc == 'NO IMPLICIT' ~ 'No Implicit',
+    has_ppc == 'YES' ~ 'Yes',
+    TRUE ~ has_ppc
+  )) %>%
+  group_by(has_ppc) %>%
+  summarise(count = n()) %>%
+  mutate(percentage = count / sum(count) * 100) %>%
+  ggplot(aes(x = "", y = count, fill = has_ppc)) +
+  geom_bar(stat = "identity",
+           colour = "black") +
+  theme_bw() +
+  scale_fill_brewer(palette = "Oranges") +
+  labs(x = "Journal Policy", y = "Count", fill = "Accepts PPC")
+
+# Arrange both graphs in the same figure
+combined_plots <- graph3 + graph4
+combined_plots
+
+ggsave(filename = "Random_statements.png", plot = last_plot(), device = "png")
+
+```
+*Note.* PPC = post-publication critique. Orange bar (left) indicates policy statements for each journal included in sample (n = 100). Blue bars (right) indicate how length and time-to-submit restrictions were stated in cases where journals had explicit post-publication critique policies in place (n = 25).
+
+```{r}
+# Length restriction statement types of explicit PPC types (random sample)
+
+# Calculate the count and percentage for "Quantitative"
+rand_quantitative_length <- random_length_data %>%
+ filter(ppc_length == "Quantitative") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(random_length_data$count) * 100)
+
+# Calculate the count and percentage for "Qualitative"
+rand_qualitative_length <- random_length_data %>%
+ filter(ppc_length == "Qualitative") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(random_length_data$count) * 100)
+
+# Calculate the count and percentage for "Not Stated"
+rand_notStated_length <- random_length_data %>%
+ filter(ppc_length == "Not Stated") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(random_length_data$count) * 100)
+
+# Range
+rand_length_range <- dj_random %>%
+  filter(!is.na(ppc_length)) %>%
+  filter(ppc_length != "Qualitative") %>%
+  filter(ppc_length != "NOT STATED") %>%
+  mutate(ppc_length = as.numeric(ppc_length)) %>%
+  summarise(prom_median_length = median(ppc_length),
+            rand_min_length = min(ppc_length),
+            rand_max_length = max(ppc_length)
+            )
+  
+
+# Time-to-submit restriction statement types of explicit PPC types (prominent sample)
+
+# Calculate the count and percentage for "Quantitative"
+rand_quantitative_time <- random_time_data %>%
+ filter(ppc_time == "Quantitative") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(random_time_data$count) * 100)
+
+# Calculate the count and percentage for "Qualitative"
+rand_qualitative_time <- random_time_data %>%
+ filter(ppc_time == "Qualitative") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(random_time_data$count) * 100)
+
+# Calculate the count and percentage for "Not Stated"
+rand_notStated_time <- random_time_data %>%
+ filter(ppc_time == "Not Stated") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(random_time_data$count) * 100)
+
+# Range
+rand_time_range <- dj_random %>%
+  filter(!is.na(ppc_time)) %>%
+  filter(ppc_time != "Qualitative") %>%
+  filter(ppc_time != "NOT STATED") %>%
+  mutate(ppc_time = as.numeric(ppc_time)) %>%
+  summarise(rand_median_time = median(ppc_time),
+            rand_min_time = min(ppc_time),
+            rand_max_time = max(ppc_time)
+            )
+
+
+# Reference restriction statement types of explicit PPC types (prominent sample)
+random_ref_data <- dj_random %>%
+  filter(!is.na(ppc_name)) %>% # keep only entries that identify PPC option
+  filter(has_ppc != "ARCHIVE") %>% # remove implicit yes examples
+  mutate(ppc_ref = case_when(
+    ppc_ref %in% c(10, 15, 20, 5) ~ 'Quantitative',
+    ppc_ref == "NOT STATED" ~ "Not Stated",
+    TRUE ~ 'Qualitative' # Summarises all time limits as 'Quantitative', 'Qualitative', or 'Not Stated'
+  )) %>%
+  group_by(ppc_ref) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+
+# Calculate the count and percentage for "Quantitative"
+rand_quantitative_ref <- random_ref_data %>%
+ filter(ppc_ref == "Quantitative") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(random_ref_data$count) * 100)
+
+# Calculate the count and percentage for "Not Stated"
+rand_notStated_ref <- random_ref_data %>%
+ filter(ppc_ref == "Not Stated") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(random_ref_data$count) * 100)
+
+# Range
+rand_ref_range <- dj_random %>%
+  filter(!is.na(ppc_ref)) %>%
+  filter(ppc_ref != "Qualitative") %>%
+  filter(ppc_ref != "NOT STATED") %>%
+  mutate(ppc_ref = as.numeric(ppc_ref)) %>%
+  summarise(rand_median_ref = median(ppc_ref),
+            rand_min_ref = min(ppc_ref),
+            rand_max_ref = max(ppc_ref)
+            )
+
+# Peer-review statements of explicit PPC types (prominent sample)
+random_review_data <- dj_random %>%
+  filter(!is.na(ppc_review)) %>% # keep only entries that identify PPC option
+  filter(has_ppc != "ARCHIVE") %>% # remove implicit yes examples
+  mutate(ppc_review = case_when(
+    ppc_review == 'YES' ~ 'Yes',
+    ppc_review == 'NO' ~ 'No',
+    ppc_review == "NOT STATED" ~ "Not Stated"
+  )) %>%
+  group_by(ppc_review) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+# Calculate the count and percentage for "Yes"
+rand_yes_review <- random_review_data %>%
+ filter(ppc_review == "Yes") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(random_review_data$count) * 100)
+
+# Calculate the count and percentage for "No"
+rand_no_review <- random_review_data %>%
+ filter(ppc_review == "No") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(random_review_data$count) * 100)
+
+# Calculate the count and percentage for "Not Stated"
+rand_notStated_review <- random_review_data %>%
+ filter(ppc_review == "Not Stated") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(random_review_data$count) * 100)
+
+
+```
+  As shown in Figure *XX*, post-publication critique policies were explicitly stated by `r dj_random %>% filter(ppc_type == "A") %>% summarise(percentage = sum(has_ppc == "YES") / n() * 100)`% of journals (95% CI [15.8%, 32.2%]), and we inferred that they were implicitly accepted (as denoted by archival examples) in `r dj_random %>% filter(ppc_type == "A") %>% summarise(percentage = sum(has_ppc == "ARCHIVE") / n() * 100)`% of journals (95% CI [1.0%, 8.5%]). `r dj_random %>% filter(ppc_type == "A") %>% summarise(percentage = sum(has_ppc == "NO IMPLICIT") / n() * 100)`% of journals (95% CI [63.6%, 80.7%]) had no advertised post-publication critique policy, and `r dj_random %>% filter(ppc_type == "A") %>% summarise(percentage = sum(has_ppc == "NO EXPLICIT") / n() * 100)` of journals (95% CI [0.2%, 5.4%]) explicitly stated that they did not accept critiques (*Clinical Psychology: Science and Practice and Psychological Bulletin*, also included in sample for prominent journals). `r dj_random %>% filter(ppc_type == "B" & !is.na(ppc_name)) %>% summarise(percentage = sum(!is.na(ppc_name) / n() * 100))` of journals accepted two types (95% CI [0.0%, 7.0%]); *Cortex* offered commentaries and 'verification reports' (Chambers, 2020) and *Journal of Cognition and Culture* offered commentaries and letters. 
+
+**ABOVE EDIT: insert code for CIs**
+
+  Among the 25 cases of explicitly accepted post-publication critiques, restrictions on length were quantitatively stated in `r print(paste(rand_quantitative_length$count, "(", round(rand_quantitative_length$percentage), "%)", sep = ""))` cases, and not stated in `r print(paste(rand_notStated_length$count, "(", round(rand_notStated_length$percentage), "%)", sep = ""))` cases. Time-to-submit was quantitatively stated in `r print(paste(rand_quantitative_time$count, "(", round(rand_quantitative_time$percentage), "%)", sep = ""))` case, and qualitatively stated in `r print(paste(rand_qualitative_time$count, "(", round(rand_qualitative_time$percentage), "%)", sep = ""))`, and not stated in `r print(paste(rand_notStated_time$count, "(", round(rand_notStated_time$percentage), "%)", sep = ""))` cases. Number of references allowed was stated quantitatively in `r print(paste(rand_quantitative_ref$count, "(", round(rand_quantitative_ref$percentage), "%)", sep = ""))` cases, and not stated in `r print(paste(rand_notStated_ref$count, "(", round(rand_notStated_ref$percentage), "%)", sep = ""))` cases. Whether critiques were peer-reviewed was stated in `r print(paste((rand_yes_review$count + rand_no_review$count), "(", round(rand_yes_review$percentage + rand_no_review$percentage), "%)", sep = ""))` cases, in `r print(paste(rand_yes_review$count, "(", round(rand_yes_review$percentage), "%)", sep = ""))` cases this was in the affirmative. When stated quantitatively, length limits ranged from `r rand_length_range %>% pull(rand_min_length)` - `r rand_length_range %>% pull(rand_max_length)` words, time-to-submit limits were only stated by one journal (as 9 months), references ranged between `r rand_ref_range %>% pull(rand_min_ref)` - `r rand_ref_range %>% pull(rand_max_ref)`. Table *XX* shows descriptive statistics for these restrictions, broken down by critique type.
+
+### Table *XX*
+
+As expected, Table *XX* shows that commentaries were overall less restrictive on length with the median word limit being double that of letters. Commentaries were also three times more likely to state quantitative length restrictions than letters. Restrictions on time-to-submit, references, and whether critiques would be sent for peer-review were not stated for any policies on letters. Similarly, no details on restrictions or peer-review were stated for 'verification reports' (the one 'other' critique type included in this sample).
+
+## PPC Prevalence (results cont.)
+
+# Discussion
+
+# Data Availability
+
+# Code Availability
