@@ -12,6 +12,7 @@ library(tidyverse)
 library(ggplot2)
 library(RColorBrewer)
 library(dplyr)
+library(binom)
 library(kableExtra) # for tables
 library(knitr) # for literate programming
 library(janitor) # for data munging
@@ -27,14 +28,14 @@ library(ggbeeswarm) # for dotplots
 ```
 
 
-
 # Load processed data files
 ```{r}
 
-d_journals <- read_csv(here('data','processed','d_journals.csv'))
-d_articles <- read_csv(here('data','processed','d_articles.csv'))
-
+d_articles <- read_csv(here('ProjCode', 'GitClone', 'PROJ_2023_psych-journal-critique', 'data','processed','d_articles.csv'), show_col_types = F) # article data 
+d_journals <- read_csv(here('ProjCode', 'GitClone', 'PROJ_2023_psych-journal-critique','data','processed','d_journals.csv'), show_col_types = F) # journal data 
 ```
+
+
 # Create separate tibbles for Prominent and Randomly-selected journal samples
 ```{r}
 dj_prominent <- d_journals %>%
@@ -182,47 +183,27 @@ table(dj_random$field, dj_random$cope)
 # Calculate CIs for YES [**EDIT TO DERIVE NUMBERS FROM DATA**]
 Not sure if this makes sense to do for Prominent and Total, as these are not random samples
 ```{r}
-library(binom)
 
 # Prominent Sample data
-prominentSuccess <- 1
-randomSuccess <- 23
-totalSuccess <- 57
+prominentSuccess <- dj_prominent %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "YES") %>%
+  count()
+randomSuccess <- dj_random %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "YES") %>%
+  count()
 
 sample_size <- 100
-totalSample <- 189
 confidence_level <- 0.95
 
 # Calculate the Wilson confidence interval
 ci_prominent <- binom.confint(prominentSuccess, sample_size, method = "wilson", conf.level = confidence_level)
 ci_random <- binom.confint(randomSuccess, sample_size, method = "wilson", conf.level = confidence_level)
-ci_total <- binom.confint(totalSuccess, totalSample, method = "wilson", conf.level = confidence_level)
 
 # Print the confidence interval
 print(ci_prominent)
 print(ci_random)
-print(ci_total)
-```
-
-# Calculate CIs for NO [**EDIT TO DERIVE NUMBERS FROM DATA**]
-```{r}
-library(binom)
-
-# Prominent Sample data
-prominentNO <- 77
-randomNO <- 74
-totalNO <- 123
-
-
-# Calculate the Wilson confidence interval
-ci_prominentNO <- binom.confint(prominentNO, sample_size, method = "wilson", conf.level = confidence_level)
-ci_randomNO <- binom.confint(randomNO, sample_size, method = "wilson", conf.level = confidence_level)
-ci_totalNO <- binom.confint(totalNO, totalSample, method = "wilson", conf.level = confidence_level)
-
-# Print the confidence interval
-print(ci_prominentNO)
-print(ci_randomNO)
-print(ci_totalNO)
 ```
 
 # Look at PPC names
@@ -267,7 +248,7 @@ table(dj_random$ppc_time, dj_random$ppc_name)
 ```{r}
 
 # Filter and transform restrictions for ppc_length
-ppc_length_data <- dj_prominent %>%
+prominent_length_data <- dj_prominent %>%
   filter(!is.na(ppc_name)) %>%
   filter(has_ppc != "ARCHIVE") %>% # removes Archive Only PPC types
   mutate(ppc_length = case_when(
@@ -279,7 +260,7 @@ ppc_length_data <- dj_prominent %>%
   summarise(count = n())
 
 # Filter and transform restrictions for ppc_time
-ppc_time_data <- dj_prominent %>%
+prominent_time_data <- dj_prominent %>%
   filter(!is.na(ppc_name)) %>%
   filter(has_ppc != "ARCHIVE") %>%
   mutate(ppc_time = case_when(
@@ -292,8 +273,8 @@ ppc_time_data <- dj_prominent %>%
 
 # Combine the data and unite the columns
 combined_data <- bind_rows(
-  ppc_length_data %>% mutate(Code = "Length"),
-  ppc_time_data %>% mutate(Code = "Time-to-submit")
+  prominent_length_data %>% mutate(Code = "Length"),
+  prominent_time_data %>% mutate(Code = "Time-to-submit")
 ) %>%
 unite(limits, ppc_length, ppc_time) %>%
   mutate(limits = case_when(limits == "Not Stated_NA" ~ "Not Stated",
@@ -343,11 +324,28 @@ combined_plots
 
 ggsave(filename = "Prominent_statements.png", plot = last_plot(), device = "png")
 ```
+
+```{r}
+# Load the dplyr package
+library(dplyr)
+
+# Calculate the count and percentage for "Quantitative"
+quantitative_data <- prominent_length_data %>%
+ filter(ppc_length == "Quantitative") %>%
+ summarise(count = sum(count), percentage = sum(count) / sum(prominent_length_data$count) * 100)
+
+# Print the count and percentage for "Quantitative"
+print(paste(quantitative_data$count, "(", round(quantitative_data$percentage, 2), "%)", sep = ""))
+
+
+```
+
+
 # Create and combine restiction statement graphs with ppc acceptance (random sample)
 ```{r}
 
 # Filter and process data for ppc_length
-ppc_length_random <- d_journals %>%
+random_length_data <- d_journals %>%
   filter(sample_id %in% c("random", "both")) %>%
   filter(!is.na(ppc_name)) %>%
   filter(has_ppc != "ARCHIVE") %>%
@@ -360,7 +358,7 @@ ppc_length_random <- d_journals %>%
   summarise(count = n())
 
 # Filter and process data for ppc_time
-ppc_time_random<- d_journals %>%
+random_time_data <- d_journals %>%
   filter(sample_id %in% c("random", "both")) %>%
   filter(!is.na(ppc_name)) %>%
   filter(has_ppc != "ARCHIVE") %>%
@@ -374,8 +372,8 @@ ppc_time_random<- d_journals %>%
 
 # Combine the data and unite the columns
 combined_data_random <- bind_rows(
-  ppc_length_random %>% mutate(Code = "Length"),
-  ppc_time_random %>% mutate(Code = "Time-to-submit")
+  random_length_data %>% mutate(Code = "Length"),
+  random_time_data %>% mutate(Code = "Time-to-submit")
 ) %>%
 unite(limits, ppc_length, ppc_time) %>%
   mutate(limits = case_when(limits == "Not Stated_NA" ~ "Not Stated",
