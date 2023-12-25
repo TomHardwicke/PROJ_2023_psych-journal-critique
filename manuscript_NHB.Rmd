@@ -88,8 +88,8 @@ source(here('analysis','raw_to_primary.R')) # converts raw data to primary data
 ```{r}
 # Load processed data files
 
-d_articles <- read_csv(here('ProjCode', 'GitClone', 'PROJ_2023_psych-journal-critique', 'data','processed','d_articles.csv'), show_col_types = F) # article data 
-d_journals <- read_csv(here('ProjCode', 'GitClone', 'PROJ_2023_psych-journal-critique','data','processed','d_journals.csv'), show_col_types = F) # journal data 
+d_articles <- read_csv(here('data','processed','d_articles.csv'), show_col_types = F) # article data 
+d_journals <- read_csv(here('data','processed','d_journals.csv'), show_col_types = F) # journal data 
 ```
 
 ```{r}
@@ -127,8 +127,6 @@ promJournalCharacteristics <- dj_prominent %>%
             promMax_jif = round(max(jif),2),
             promIQR_jif = round(IQR(jif),2)
   )
-  
-  
 
 ```
 
