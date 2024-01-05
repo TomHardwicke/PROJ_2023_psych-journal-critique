@@ -12,13 +12,13 @@ abstract: "Fostering critical discussion is essential to upholding the ethos of 
   this by offering options for post-publication critique, such as commentaries or
   letters, allowing peers to voice substantiated concerns of empirical articles. We
   provide a descriptive, cross-sectional analysis of post-publication critique policies
-  and prevalence across both prominent randomly-selected and psychology journals.
+  and prevalence across samples of a) 100 prominent and b) 100 randomly-selected and psychology journals.
   We found that 38% of prominent and 23% of randomly-selected psychology journals
-  offered explicit options for post-publication critique. Length and time-to-submit
+  offered explicit critique options. Length and time-to-submit
   limits were often not stated. Critique prevalence was rare with only a single event
   identified among two samples of 101 articles. Given the widespread recognition of
   the replication crisis in psychology, allowing avenues for criticisms to be voiced
-  may help increase the credibility within the field. To support transparency and
+  may help increase credibility within the field. To support transparency and
   self-correction, psychology journals should offer clearly stated post-publication
   critique options and encourage their use.\n"
 keywords: "post-publication critique, peer review, psychology, meta-research, journal
