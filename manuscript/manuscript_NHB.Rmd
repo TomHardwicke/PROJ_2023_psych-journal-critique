@@ -709,20 +709,20 @@ rand_copeN_PPC <- dj_random %>%
 # COPE membership status among prominent journals NOT accepting PPC
 random_PPCn <- dj_random %>%
   filter(ppc_type == "A") %>%
-  filter(has_ppc == "NO IMPLICIT" | has_ppc == "NO EXPLICIT") %>% # keep only journals that accept PPC
-  summarise(count = n()) # total number journals accepting PPC
+  filter(has_ppc == "NO IMPLICIT" | has_ppc == "NO EXPLICIT") %>% # keep only journals that do not accept PPC
+  summarise(count = n()) # total number journals not accepting PPC
 
 rand_copeY_PPCn <- dj_random %>%
   filter(ppc_type == "A") %>%
   filter(has_ppc == "NO IMPLICIT" | has_ppc == "NO EXPLICIT") %>%
-  filter(cope == "TRUE") %>% # Keep only COPE journals (that accept PPC)
+  filter(cope == "TRUE") %>% # Keep only COPE journals (that do not accept PPC)
   summarise(count = n()) # number of COPE journals accepting PPC
 
 rand_copeN_PPCn <- dj_random %>%
   filter(ppc_type == "A") %>%
   filter(has_ppc == "NO IMPLICIT" | has_ppc == "NO EXPLICIT") %>%
-  filter(cope == "FALSE") %>% # Keep only non-COPE journals (that accept PPC)
-  summarise(count = n()) # number of non-COPE journals accepting PPC
+  filter(cope == "FALSE") %>% # Keep only non-COPE journals (that do not accept PPC)
+  summarise(count = n()) # number of non-COPE journals not accepting PPC
  
 ```
 
