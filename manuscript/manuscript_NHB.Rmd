@@ -57,6 +57,7 @@ library(here) # for finding files
 library(binom) # for calculating CIs
 library(citation) # for organizing citations
 library(tinytex)
+library(english) # for displaying code generated numbers as written 
 ```
 
 ```{r echo=FALSE, message=FALSE}
@@ -343,8 +344,50 @@ Among the 41 explicitly stated post-publication critique options, restrictions o
 When stated quantitatively, length limits ranged from `r prom_length_range %>% pull(prom_min_length)` - `r prom_length_range %>% pull(prom_max_length)` words, time-to-submit limits ranged from `r prom_time_range %>% pull(prom_min_time)` - `r prom_time_range %>% pull(prom_max_time)` weeks, reference limits ranged between `r prom_ref_range %>% pull(prom_min_ref)` -`r prom_ref_range %>% pull(prom_max_ref)`. Table *XX* shows descriptive statistics for stated quantitative restrictions, broken down by critique type.
     
 ### Table *XX*
+[*Insert table of results*]
 
 As expected, results in Table 1 show that commentaries were generally less restrictive on length with the median word limit being 2.5 times that of letters. The median number of references allowed was 1.5 times greater in commentaries compared to letters. Commentaries were also 3.3 times more likely to be sent for peer-review. Interestingly, time-to-submit was less restrictive for letters than commentaries, however, this was only reported in two and four cases (respectively) so limited inferences can be made from this.
+
+```{r COPE status in prominent sample, echo=FALSE, message=FALSE}
+# COPE membership status among prominent journals accepting PPC
+prominent_PPCy <- dj_prominent %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "YES" | has_ppc == "ARCHIVE") %>% # keep only journals that accept PPC
+  summarise(count = n()) # total number journals accepting PPC
+
+prom_copeY_PPC <- dj_prominent %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "YES" | has_ppc == "ARCHIVE") %>%
+  filter(cope == "TRUE") %>% # Keep only COPE journals (that accept PPC)
+  summarise(count = n()) # number of COPE journals accepting PPC
+
+prom_copeN_PPC <- dj_prominent %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "YES" | has_ppc == "ARCHIVE") %>%
+  filter(cope == "FALSE") %>% # Keep only non-COPE journals (that accept PPC)
+  summarise(count = n()) # number of non-COPE journals accepting PPC
+
+# COPE membership status among prominent journals NOT accepting PPC
+prominent_PPCn <- dj_prominent %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "NO IMPLICIT" | has_ppc == "NO EXPLICIT") %>% # keep only journals that accept PPC
+  summarise(count = n()) # total number journals accepting PPC
+
+prom_copeY_PPCn <- dj_prominent %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "NO IMPLICIT" | has_ppc == "NO EXPLICIT") %>%
+  filter(cope == "TRUE") %>% # Keep only COPE journals (that accept PPC)
+  summarise(count = n()) # number of COPE journals accepting PPC
+
+prom_copeN_PPCn <- dj_prominent %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "NO IMPLICIT" | has_ppc == "NO EXPLICIT") %>%
+  filter(cope == "FALSE") %>% # Keep only non-COPE journals (that accept PPC)
+  summarise(count = n()) # number of non-COPE journals accepting PPC
+ 
+```
+
+Of the `r paste(prominent_PPCy$count)` journals that accepted post-publication critiques (including the six implicitly implied through archive examples), `r paste(prom_copeY_PPC$count, "(", round((prom_copeY_PPC$count / prominent_PPCy$count) * 100, 1), "%)", sep = "")` were COPE members and `r paste(as.english(prom_copeN_PPC$count), " (", round((prom_copeN_PPC$count / prominent_PPCy$count) * 100, 1), "%)", sep = "")` were not. Of the `r paste(prominent_PPCn$count)` journals that had no critique policy, `r paste(prom_copeY_PPCn$count, "(", round((prom_copeY_PPCn$count / prominent_PPCn$count) * 100, 1), "%)", sep = "")` were COPE members, including both of those with explicit statements that they do not accept unsolicited critiques.
 
 ## Randomly-selected Psychology Journals
 ```{r randomly-selected journal-characteristics, echo=FALSE, message=FALSE}
@@ -640,8 +683,50 @@ Among the 25 cases of explicitly accepted post-publication critiques, restrictio
 When stated quantitatively, length limits ranged from `r rand_length_range %>% pull(rand_min_length)` - `r rand_length_range %>% pull(rand_max_length)` words, time-to-submit limits were only stated by one journal (as 9 months), references ranged between `r rand_ref_range %>% pull(rand_min_ref)` - `r rand_ref_range %>% pull(rand_max_ref)`. Table *XX* shows descriptive statistics for these restrictions, broken down by critique type.
 
 ### Table *XX*
+[*Insert table of results*]
 
 As expected, Table *XX* shows that commentaries were overall less restrictive on length with the median word limit being double that of letters. Commentaries were also three times more likely to state quantitative length restrictions than letters. Restrictions on time-to-submit, references, and whether critiques would be sent for peer-review were not stated for any policies on letters. Similarly, no details on restrictions or peer-review were stated for 'verification reports' (the one 'other' critique type included in this sample).
+
+```{r COPE status in random sample, echo=FALSE, message=FALSE}
+# COPE membership status among randomly-sampled journals accepting PPC
+random_PPCy <- dj_random %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "YES" | has_ppc == "ARCHIVE") %>% # keep only journals that accept PPC
+  summarise(count = n()) # total number journals accepting PPC
+
+rand_copeY_PPC <- dj_random %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "YES" | has_ppc == "ARCHIVE") %>%
+  filter(cope == "TRUE") %>% # Keep only COPE journals (that accept PPC)
+  summarise(count = n()) # number of COPE journals accepting PPC
+
+rand_copeN_PPC <- dj_random %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "YES" | has_ppc == "ARCHIVE") %>%
+  filter(cope == "FALSE") %>% # Keep only non-COPE journals (that accept PPC)
+  summarise(count = n()) # number of non-COPE journals accepting PPC
+
+# COPE membership status among prominent journals NOT accepting PPC
+random_PPCn <- dj_random %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "NO IMPLICIT" | has_ppc == "NO EXPLICIT") %>% # keep only journals that accept PPC
+  summarise(count = n()) # total number journals accepting PPC
+
+rand_copeY_PPCn <- dj_random %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "NO IMPLICIT" | has_ppc == "NO EXPLICIT") %>%
+  filter(cope == "TRUE") %>% # Keep only COPE journals (that accept PPC)
+  summarise(count = n()) # number of COPE journals accepting PPC
+
+rand_copeN_PPCn <- dj_random %>%
+  filter(ppc_type == "A") %>%
+  filter(has_ppc == "NO IMPLICIT" | has_ppc == "NO EXPLICIT") %>%
+  filter(cope == "FALSE") %>% # Keep only non-COPE journals (that accept PPC)
+  summarise(count = n()) # number of non-COPE journals accepting PPC
+ 
+```
+
+Of the `r paste(random_PPCy$count)` journals that accepted post-publication critiques (including the three implicitly implied through archive examples), `r paste(rand_copeY_PPC$count, "(", round((rand_copeY_PPC$count / random_PPCy$count) * 100, 1), "%)", sep = "")` were COPE members and `r paste(as.english(rand_copeN_PPC$count), " (", round((rand_copeN_PPC$count / random_PPCy$count) * 100, 1), "%)", sep = "")` were not. Of the `r paste(random_PPCn$count)` journals that had no critique policy, `r paste(rand_copeY_PPCn$count, "(", round((rand_copeY_PPCn$count / random_PPCn$count) * 100, 1), "%)", sep = "")` were COPE members, including the one with an explicit statement that they do not accept unsolicited critiques.
 
 ## Part 2: Post-Publication Critique Prevalence
 ```{r echo = FALSE, message=FALSE}
