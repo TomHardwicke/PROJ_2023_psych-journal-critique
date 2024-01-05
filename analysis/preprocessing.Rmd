@@ -585,7 +585,7 @@ d_articles <- d_articles %>%
          article_id = factor(article_id),
          exclude = factor(exclusion_final),
          exclude_reason = factor(exclusion_reason_final),
-         ppc_linked = as.logical(fct_recode(ppc_linked_final, T = "NO", F = "YES"))) %>%
+         ppc_linked = as.logical(fct_recode(ppc_linked_final, F = "NO", T = "YES"))) %>%
   select(sample_id, article_id, exclude, exclude_reason, ppc_linked)
 ```
 
