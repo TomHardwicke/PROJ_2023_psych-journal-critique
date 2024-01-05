@@ -96,7 +96,9 @@ Utility <- c("Concise criticisms submitted shortly after target article publishe
 PPCtypes <- data.frame(Type, MedianLength, MedianTime, MedianRefs, PeerReview, DOIs, Utility)
 ```
 
-``` {r echo = FALSE, results = 'asis'}
+``` {r echo = FALSE, message = FALSE}
+#ERR: Table currently inserts under results in PDF. Format is horrendous in Word.
+
 PPCtypes %>%
   kbl(align = c(rep("l", 1), rep("c", 5), rep("l", 1)), caption = "Common post-publication critique types including median restrictions, peer review policies, and descriptions",
       col.names = c("Type", "Length", "Time-to-submit", "References", "Peer-review", "DOI", "Description")) %>%
@@ -179,7 +181,8 @@ graph1 <- ggplot(combined_data, aes(x = Code, y = count, fill = limits)) +
            colour = "black") +
   theme_bw() +
   scale_fill_brewer(palette = "Blues") +
-  labs(x = "Restriction Type", y = "Count", fill = "Restrictions")
+  labs(x = "Restriction Type", y = "Count", fill = "Restrictions") +
+  theme(axis.text.x = element_text(size = 7))
 
 # Create the second graph
 graph2 <- dj_prominent %>%
@@ -197,9 +200,10 @@ graph2 <- dj_prominent %>%
   mutate(percentage = count / sum(count) * 100) %>%
   ggplot(aes(x = "", y = count, fill = has_ppc)) +
   geom_bar(stat = "identity",
-           colour = "black") +
+           colour = "black",
+           width = 0.8) +
   theme_bw() +
-  scale_fill_brewer(palette = "Oranges") +
+  scale_fill_brewer(palette = "YlOrRd", direction = -1) +
   labs(x = "Journal Policy", y = "Count", fill = "Accepts PPC")
 
 # Arrange both graphs in the same figure
@@ -458,7 +462,8 @@ graph4 <- ggplot(combined_data_random, aes(x = Code, y = count, fill = limits)) 
            colour = "black") +
   theme_bw() +
   scale_fill_brewer(palette = "Blues") +
-  labs(x = "Restriction Type", y = "Count", fill = "Restrictions")
+  labs(x = "Restriction Type", y = "Count", fill = "Restrictions") +
+  theme(axis.text.x = element_text(size = 7))
 
 # Create the second graph
 graph3 <- d_journals %>%
@@ -477,9 +482,10 @@ graph3 <- d_journals %>%
   mutate(percentage = count / sum(count) * 100) %>%
   ggplot(aes(x = "", y = count, fill = has_ppc)) +
   geom_bar(stat = "identity",
-           colour = "black") +
+           colour = "black",
+           width = 0.8) +
   theme_bw() +
-  scale_fill_brewer(palette = "Oranges") +
+  scale_fill_brewer(palette = "YlOrRd", direction = -1) +
   labs(x = "Journal Policy", y = "Count", fill = "Accepts PPC")
 
 # Arrange both graphs in the same figure
