@@ -83,18 +83,6 @@ dj_random <- d_journals %>%
 # Main
 *Add 'Introduction' section*
 
-```{r echo = FALSE, message = FALSE}
-# Create Table for describing the different common PPC types and restrictions (based on Hardwicke et al., 2022 findings)
-Type <- c("Letters", "Commentaries", "Web Comments")
-MedianLength <- c("500", "1200", "600")
-MedianTime <- c("8", "26", "NA")
-MedianRefs <- c("6", "15", "8")
-PeerReview <- c("20%", "55%", "0%")
-DOIs <- c("Yes", "Yes", "No")
-Utility <- c("Concise criticisms submitted shortly after target article published", "More in-depth critical reviews", "Flexible length with almost immediate visibility to readership")
-
-PPCtypes <- data.frame(Type, MedianLength, MedianTime, MedianRefs, PeerReview, DOIs, Utility)
-```
 
 ``` {r echo = FALSE, message = FALSE}
 #ERR: Table currently inserts under results in PDF. Format is horrendous in Word.
