@@ -567,7 +567,6 @@ d_journals <- d_journals %>%
          journal_name = factor(journal),
          is_empirical = as.logical(fct_recode(journal_empirical, T = "Yes", F = "No")),
          has_ppc = fct_recode(anyPPC, 
-                             "ARCHIVE" = "ARCHIVE ONLY", 
                              "NO IMPLICIT" = "NO (there are no PPC options)",
                              "NO EXPLICIT" = "NO (explicit statement that PPC is not accepted)")) %>%
   select(sample_id, journal_name, is_empirical, has_ppc, ppc_type = PPC_type, ppc_name = name_harmonized, ppc_description = description, ppc_length = length_harmonized, ppc_time = time_harmonized, ppc_ref = ref_harmonized, ppc_review = review_harmonized, cope, field = field_harmonized, jif)
