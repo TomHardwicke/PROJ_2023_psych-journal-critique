@@ -1,0 +1,183 @@
+---
+title: "Results Analysis"
+author: "Annie Whamond"
+date: "2024-04-10"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Load packages
+
+```{r}
+# Load libraries
+library(here)
+library(lsr)
+library(tidyverse)
+library(tidylog)
+library(binom)
+library(ggplot2)
+library(RColorBrewer)
+```
+
+# Load data
+
+```{r}
+# Load preprocessed data
+d_articles <- read_csv(here('data', 'processed', 'd_articles.csv'), show_col_types = F) # article data 
+d_journals <- read_csv(here('data', 'processed', 'd_journals.csv'), show_col_types = F) # journal data
+```
+
+# STUDY ONE: JOURNAL POLICY
+
+Remove excluded journals and create separate tibbles for prominent and randomly sampled journals
+```{r}
+dj_prominent <- d_journals %>%
+  filter(sample_id != "random") %>%
+  filter(is_empirical == TRUE)
+
+dj_random <- d_journals %>%
+  filter(sample_id != "prominent") %>%
+  filter(is_empirical == TRUE)
+```
+## Journal characteristics
+Descriptive statistics 
+
+Calculate JIF median and IQR for prominent journals
+```{r}
+# Prominent journal sample
+prominentJIF <- dj_prominent %>% 
+  filter(ppc_type == "A") %>%      # Keep only single entry for each journal
+  summarise(promMedian_jif = round(median(jif),2), 
+            promMin_jif = round(min(jif),2),
+            promMax_jif = round(max(jif),2),
+            promIQR_jif = round(IQR(jif),2)
+  )
+
+prominentJIF
+```
+
+Calculate JIF median and IQR for random journals
+```{r}
+randomJIF <- dj_random %>% 
+  filter(ppc_type == "A") %>%
+  filter(!is.na(jif)) %>%
+  summarise(randMedian_jif = round(median(jif),2),
+            randMin_jif = round(min(jif),2),
+            randMax_jif = round(max(jif),2),
+            randIQR_jif = round(IQR(jif),2)
+  )
+
+randomJIF
+```
+
+
+Count prominent journals listed as COPE members 
+```{r}
+prominentCOPE <- dj_prominent %>%
+  filter(ppc_type == 'A') %>%
+  filter(cope == TRUE) %>%
+  summarise(count = n())
+
+prominentCOPE
+```
+
+Count randomly sampled journals listed as COPE members 
+```{r}
+randomCOPE <- dj_random %>%
+  filter(ppc_type == 'A') %>%
+  filter(cope == TRUE) %>%
+  summarise(count = n())
+
+randomCOPE
+```
+
+Prominent journals Web Of Science categories
+```{r}
+prominentCategory <- dj_prominent %>%
+  filter(ppc_type == 'A') %>%
+  group_by(field) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+prominentCategory
+```
+Random journals Web Of Science categories
+```{r}
+randomCategory <- dj_random %>%
+  filter(ppc_type == 'A') %>%
+  group_by(field) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+randomCategory
+```
+## How many journals offer post-publication critique?
+
+Inspect how frequently post-publication critique policies were stated for prominent journals 
+```{r}
+prominentPPC <- dj_prominent %>%
+  filter(ppc_type == 'A') %>%
+  group_by(has_ppc) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+prominentPPC
+```
+*Note: This may change once ARCHIVE ONLY coding is removed*
+
+Inspect post-publication critique types at prominent journals
+```{r}
+prominentTypes <- dj_prominent %>%
+  filter(!is.na(ppc_name)) %>%
+  group_by(ppc_name) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+prominentTypes
+```
+
+
+Inspect how frequently post-publication critique policies were stated for randomly sampled journals 
+```{r}
+randomPPC <- dj_random %>%
+  filter(ppc_type == 'A') %>%
+  group_by(has_ppc) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+randomPPC
+```
+
+Calculate confidence interval for explicitly stated post-publication critique policies among randomly sampled journals
+```{r}
+
+randomPPCyes <- dj_random %>%
+  filter(ppc_type == 'A', !is.na(ppc_name)) %>%
+  summarise(count = n())
+
+# Calculate Wilson confidence intervals
+sample_size <- 100
+confidence_level <- 0.95
+
+#CIs for 'Yes Explicit'
+randomPPC_CI <- binom.confint(randomPPCyes, sample_size, method = "wilson", conf.level = confidence_level)
+
+randomPPC_CI
+```
+
+Inspect post-publication critique types at randomly sampled journals
+```{r}
+randomTypes <- dj_random %>%
+  filter(!is.na(ppc_name)) %>%
+  group_by(ppc_name) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+randomTypes
+```
+
