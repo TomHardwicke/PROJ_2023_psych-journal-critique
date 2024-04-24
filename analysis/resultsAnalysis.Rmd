@@ -217,10 +217,15 @@ randomPPC <- dj_random %>%
 
 randomPPC
 ```
+Get the names of the randomly selected journals that have 'NO EXPLICIT' PPC options
+```{r}
+dj_random %>%
+  filter(ppc_type == "A" & has_ppc == "NO EXPLICIT") %>%
+  print()
+```
 
 Calculate confidence interval for explicitly stated PPC policies among randomly selected journals
 ```{r}
-
 randomPPCyes <- dj_random %>%
   filter(ppc_type == 'A', !is.na(ppc_name)) %>%
   summarise(count = n())
@@ -771,4 +776,49 @@ ci_randIinstance_UL <- round(ci_Rinstance$upper*100, 1)
 
 ci_randInstance_LL
 ci_randIinstance_UL
+```
+
+# FIGURES
+
+```{r}
+quantLength <- d_journals %>%
+ select(c(sample_id, ppc_name, ppc_length)) %>%
+ filter(!is.na(ppc_length),
+         ppc_length != "NOT STATED",
+         ppc_length != "Qualitative") %>%
+ mutate(Length = as.numeric(ppc_length))
+
+quantLength %>%  
+ ggplot(mapping = aes(x = ppc_name, y = Length, colour = sample_id)) +
+ geom_boxplot(
+    color = "black",
+    fill = "lightblue",
+    alpha = 0.5
+ ) +
+ geom_jitter(width = 0.2) + 
+ coord_flip() +
+ theme_bw() +
+ labs(Title = "Length Limits", x = "Post-publication critique type", y = "Length limits (words)")
+
+```
+
+```{r}
+quantTime <- d_journals %>%
+ select(c(sample_id, ppc_name, ppc_time)) %>%
+ filter(!is.na(ppc_time),
+         ppc_time != "NOT STATED",
+         ppc_time != "Qualitative") %>%
+ mutate(Time = as.numeric(ppc_time))
+
+quantTime %>%  
+ ggplot(mapping = aes(x = ppc_name, y = Time, colour = sample_id)) +
+ geom_boxplot(
+    color = "black",
+    fill = "lightblue",
+    alpha = 0.5
+ ) +
+ geom_jitter(width = 0.2) + 
+ coord_flip() +
+ theme_bw() +
+ labs(Title = "Time Limits", x = "Post-publication critique type", y = "Time limits (weeks)")
 ```
