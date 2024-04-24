@@ -22,6 +22,7 @@ library(tidylog)
 library(binom)
 library(ggplot2)
 library(RColorBrewer)
+library(assertthat) 
 ```
 
 # Load data
@@ -34,7 +35,7 @@ d_journals <- read_csv(here('data', 'processed', 'd_journals.csv'), show_col_typ
 
 # STUDY ONE: JOURNAL POLICY
 
-Remove excluded journals and create separate tibbles for prominent and randomly sampled journals
+Remove excluded journals and create separate tibbles for prominent and randomly selected journals
 ```{r}
 dj_prominent <- d_journals %>%
   filter(sample_id != "random") %>%
@@ -44,6 +45,24 @@ dj_random <- d_journals %>%
   filter(sample_id != "prominent") %>%
   filter(is_empirical == TRUE)
 ```
+```{r}
+# Run a test to ensure all randomly-selected and non-empirical journals removed from dj_prominent
+assert_that(
+  all(dj_prominent$sample_id == "prominent" | dj_prominent$sample_id == "both" 
+      & dj_prominent$is_empirical == TRUE),
+  msg = "Found unexpected values in the sample_id or is_empirical columns"
+  )
+
+# Run a test to ensure all prominent sample and non-empirical journals removed from dj_prominent
+assert_that(
+  all(dj_random$sample_id == "random" | 
+        dj_random$sample_id == "both" 
+      & dj_random$is_empirical == TRUE),
+  msg = "Found unexpected values in the sample_id or is_empirical columns"
+  )
+
+```
+
 ## Journal characteristics
 Descriptive statistics 
 
@@ -86,7 +105,7 @@ prominentCOPE <- dj_prominent %>%
 prominentCOPE
 ```
 
-Count randomly sampled journals listed as COPE members 
+Count randomly selected journals listed as COPE members 
 ```{r}
 randomCOPE <- dj_random %>%
   filter(ppc_type == 'A') %>%
@@ -128,21 +147,65 @@ prominentPPC <- dj_prominent %>%
 
 prominentPPC
 ```
-*Note: This may change once ARCHIVE ONLY coding is removed*
+Get the names of the prominent journals that have 'NO EXPLICIT' PPC options
+```{r}
+dj_prominent %>%
+  filter(ppc_type == "A" & has_ppc == "NO EXPLICIT") %>%
+  print()
+```
+Get how many prominent journals offered more than one type
+```{r}
+# Return all rows with ppc_name values for ppc_type B and C
+dj_prominent %>%
+  filter((ppc_type == "B" | ppc_type == "C") & (!is.na(ppc_name)))
+
+# Return count
+dj_prominent %>%
+  filter((ppc_type == "B" | ppc_type == "C") & (!is.na(ppc_name))) %>%
+  summarise(count = n())
+```
 
 Inspect post-publication critique types at prominent journals
 ```{r}
-prominentTypes <- dj_prominent %>%
+# Counts for all types of PPC, commentary only, and letters only
+promAllTypes <- dj_prominent %>%
   filter(!is.na(ppc_name)) %>%
-  group_by(ppc_name) %>%
-  summarise(count = n()) %>%
-  ungroup()
+  summarise(n())
 
-prominentTypes
+promCommentary <- dj_prominent %>%
+  filter(ppc_name == "Commentary") %>%
+  summarise(n())
+
+promLetters <- dj_prominent %>%
+  filter(ppc_name == "Letters") %>%
+  summarise(n())
+
+# These numbers will be used in percentage calculations for limits
+promAllTypes # Total number of PPC options found in prominent journals
+promCommentary # Total number of 'Commentary' options
+promLetters # Total number of 'Letters' options
+```
+Inspect the COPE status of prominent journals with and without PPC policies
+```{r}
+promCOPEtable <- dj_prominent %>%
+ filter(ppc_type == "A") %>%
+ mutate(has_ppc = case_when(
+    has_ppc == "NO EXPLICIT" ~ "NO",
+    has_ppc == "NO IMPLICIT" ~ "NO",
+    TRUE ~ has_ppc
+ )) %>%
+ group_by(has_ppc) %>%
+ summarise(
+    total_count = n(),
+    COPE_count = sum(cope == TRUE)
+ ) %>%
+ mutate(COPEpercentage = round((COPE_count / total_count) * 100)) %>%
+ ungroup()
+
+promCOPEtable
 ```
 
-
-Inspect how frequently post-publication critique policies were stated for randomly sampled journals 
+Inspect how frequently post-publication critique policies were stated for randomly selected journals 
 ```{r}
 randomPPC <- dj_random %>%
   filter(ppc_type == 'A') %>%
@@ -153,7 +216,7 @@ randomPPC <- dj_random %>%
 randomPPC
 ```
 
-Calculate confidence interval for explicitly stated post-publication critique policies among randomly sampled journals
+Calculate confidence interval for explicitly stated post-publication critique policies among randomly selected journals
 ```{r}
 
 randomPPCyes <- dj_random %>%
@@ -169,8 +232,27 @@ randomPPC_CI <- binom.confint(randomPPCyes, sample_size, method = "wilson", conf
 
 randomPPC_CI
 ```
+Get how many randomly selected journals offered more than one type
+```{r}
+# Return all rows with ppc_name values for ppc_type B and C
+dj_random %>%
+  filter((ppc_type == "B" | ppc_type == "C") & (!is.na(ppc_name)))
 
-Inspect post-publication critique types at randomly sampled journals
+# Return count
+dj_random %>%
+  filter((ppc_type == "B" | ppc_type == "C") & (!is.na(ppc_name))) %>%
+  summarise(count = n())
+```
+
+
+Get the names of the randomly samples journals that have 'NO EXPLICIT' PPC options
+```{r}
+dj_random %>%
+  filter(ppc_type == "A" & has_ppc == "NO EXPLICIT") %>%
+  print()
+```
+
+Inspect post-publication critique types at randomly selected journals
 ```{r}
 randomTypes <- dj_random %>%
   filter(!is.na(ppc_name)) %>%
@@ -181,3 +263,405 @@ randomTypes <- dj_random %>%
 randomTypes
 ```
 
+Inspect the COPE status of randomly selected journals with and without PPC policies
+```{r}
+randCOPEtable <- dj_random %>%
+ filter(ppc_type == "A") %>%
+ mutate(has_ppc = case_when(
+    has_ppc == "NO EXPLICIT" ~ "NO",
+    has_ppc == "NO IMPLICIT" ~ "NO",
+    TRUE ~ has_ppc
+ )) %>%
+ group_by(has_ppc) %>%
+ summarise(
+    total_count = n(),
+    COPE_count = sum(cope == TRUE)
+ ) %>%
+ mutate(COPEpercentage = round((COPE_count / total_count) * 100)) %>%
+ ungroup()
+
+randCOPEtable
+```
+
+# What limits did journals place on post-publication critique?
+Find the most restrictive limits of any journal
+```{r}
+# Find the lowest length limit
+minLength <- d_journals %>%
+ select(c(sample_id, journal_name, ppc_name, ppc_length)) %>%
+ filter(!is.na(ppc_name),
+         ppc_length != "NOT STATED" & ppc_length != "Qualitative") %>%
+ mutate(quantLength = as.numeric(ppc_length)) %>%
+ slice_min(quantLength, n = 1) %>% # Select the row with the minimum quantLength
+ ungroup()
+
+minLength
+```
+
+``` {r}
+# Find the lowest time-to-submit limit
+minTime <- d_journals %>%
+ select(c(sample_id, journal_name, ppc_name, ppc_time)) %>%
+ filter(!is.na(ppc_name),
+         ppc_time != "NOT STATED" & ppc_time != "Qualitative") %>%
+ mutate(quantTime = as.numeric(ppc_time)) %>%
+ slice_min(quantTime, n = 1) %>% # Select the row with the minimum quantTime
+ ungroup()
+
+minTime
+```
+
+
+
+## Calculations for Table 1: Prominent journals
+Check length limits placed on PPC options in prominent journals
+```{r}
+# Summarise length statistics for All Types
+prominentLengthAll <- dj_prominent %>%
+ filter(!is.na(ppc_name)) %>% 
+ select(c(journal_name, ppc_name, ppc_length)) %>%
+ mutate(quantLength = case_when(
+    ppc_length == "NOT STATED" | ppc_length == "Qualitative" ~ NA_real_,
+    TRUE ~ as.numeric(ppc_length) # create a column that contains only quantitative limits
+  )) %>%
+ summarise(
+    anyLimit = n() - sum(ppc_length == "NOT STATED"),
+    anyPercent = round((anyLimit / n()) * 100),
+    quantLimit = anyLimit - sum(ppc_length == "Qualitative"),
+    quantPercent = round((quantLimit / n()) * 100),
+    medianLength = median(quantLength, na.rm = TRUE),
+    Q1 = quantile(quantLength, probs = 0.25, na.rm = TRUE),
+    Q3 = quantile(quantLength, probs = 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1 
+ ) 
+
+prominentLengthAll
+```
+
+``` {r}
+# Summarise length Statistics for each PPC type
+prominentLengthType <- dj_prominent %>%
+ filter(!is.na(ppc_name)) %>% 
+ select(c(journal_name, ppc_name, ppc_length)) %>%
+ mutate(quantLength = case_when(
+    ppc_length == "NOT STATED" | ppc_length == "Qualitative" ~ NA_real_,
+    TRUE ~ as.numeric(ppc_length) # create a column that contains only quantitative limits
+  )) %>%
+ group_by(ppc_name) %>%
+ summarise(
+    anyLimit = n() - sum(ppc_length == "NOT STATED"),
+    anyPercent = round((anyLimit / n()) * 100),
+    quantLimit = anyLimit - sum(ppc_length == "Qualitative"),
+    quantPercent = round((quantLimit / n()) * 100),
+    medianLength = median(quantLength, na.rm = TRUE),
+    Q1 = quantile(quantLength, probs = 0.25, na.rm = TRUE),
+    Q3 = quantile(quantLength, probs = 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1 
+ ) %>%
+  ungroup()
+
+prominentLengthType
+```
+Check time-to-submit limits placed on PPC options in prominent journals
+```{r}
+# Summarise time-to-submit statistics for All Types
+prominentTimeAll <- dj_prominent %>%
+ filter(!is.na(ppc_name)) %>% 
+ select(c(journal_name, ppc_name, ppc_time)) %>%
+ mutate(quantTime = case_when(
+    ppc_time == "NOT STATED" | ppc_time == "Qualitative" ~ NA_real_,
+    TRUE ~ as.numeric(ppc_time) # create a column that contains only quantitative limits
+  )) %>%
+ summarise(
+    anyLimit = n() - sum(ppc_time == "NOT STATED"),
+    anyPercent = round((anyLimit / n()) * 100),
+    quantLimit = anyLimit - sum(ppc_time == "Qualitative"),
+    quantPercent = round((quantLimit / n()) * 100),
+    medianTime = median(quantTime, na.rm = TRUE),
+    Q1 = quantile(quantTime, probs = 0.25, na.rm = TRUE),
+    Q3 = quantile(quantTime, probs = 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1 
+ ) 
+
+prominentTimeAll
+```
+
+``` {r}
+# Summarise time-to-submit Statistics for each PPC type
+prominentTimeType <- dj_prominent %>%
+ filter(!is.na(ppc_name)) %>% 
+ select(c(journal_name, ppc_name, ppc_time)) %>%
+ mutate(quantTime = case_when(
+    ppc_time == "NOT STATED" | ppc_time == "Qualitative" ~ NA_real_,
+    TRUE ~ as.numeric(ppc_time) # create a column that contains only quantitative limits
+  )) %>%
+  group_by(ppc_name) %>%
+ summarise(
+    anyLimit = n() - sum(ppc_time == "NOT STATED"),
+    anyPercent = round((anyLimit / n()) * 100),
+    quantLimit = anyLimit - sum(ppc_time == "Qualitative"),
+    quantPercent = round((quantLimit / n()) * 100),
+    medianTime = median(quantTime, na.rm = TRUE),
+    Q1 = quantile(quantTime, probs = 0.25, na.rm = TRUE),
+    Q3 = quantile(quantTime, probs = 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1 
+ ) %>%
+  ungroup()
+
+prominentTimeType
+```
+Check reference limits placed on PPC options in prominent journals
+```{r}
+# Summarise reference statistics for All Types
+prominentRefAll <- dj_prominent %>%
+ filter(!is.na(ppc_name)) %>% 
+ select(c(journal_name, ppc_name, ppc_ref)) %>%
+ mutate(quantRef = case_when(
+    ppc_ref == "NOT STATED" | ppc_ref == "Qualitative" ~ NA_real_,
+    TRUE ~ as.numeric(ppc_ref) # create a column that contains only quantitative limits
+  )) %>%
+ summarise(
+    anyLimit = n() - sum(ppc_ref == "NOT STATED"),
+    anyPercent = round((anyLimit / n()) * 100),
+    quantLimit = anyLimit - sum(ppc_ref == "Qualitative"),
+    quantPercent = round((quantLimit / n()) * 100),
+    medianRef = median(quantRef, na.rm = TRUE),
+    Q1 = quantile(quantRef, probs = 0.25, na.rm = TRUE),
+    Q3 = quantile(quantRef, probs = 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1 
+ ) 
+
+prominentRefAll
+```
+
+```{r}
+# Summarise reference statistics by type
+prominentRefType <- dj_prominent %>%
+ filter(!is.na(ppc_name)) %>% 
+ select(c(journal_name, ppc_name, ppc_ref)) %>%
+ mutate(quantRef = case_when(
+    ppc_ref == "NOT STATED" | ppc_ref == "Qualitative" ~ NA_real_,
+    TRUE ~ as.numeric(ppc_ref) # create a column that contains only quantitative limits
+  )) %>%
+  group_by(ppc_name) %>%
+ summarise(
+    anyLimit = n() - sum(ppc_ref == "NOT STATED"),
+    anyPercent = round((anyLimit / n()) * 100),
+    quantLimit = anyLimit - sum(ppc_ref == "Qualitative"),
+    quantPercent = round((quantLimit / n()) * 100),
+    medianRef = median(quantRef, na.rm = TRUE),
+    Q1 = quantile(quantRef, probs = 0.25, na.rm = TRUE),
+    Q3 = quantile(quantRef, probs = 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1 
+ ) %>%
+  ungroup()
+
+prominentRefType
+```
+Check how many PPC options are sent for external peer review in prominent journals
+```{r}
+# Peer review statistics for All Types
+prominentReviewAll <- dj_prominent %>%
+  select(c(journal_name, ppc_name, ppc_review)) %>%
+  filter(!is.na(ppc_name)) %>%
+  summarise(anyReview = n() - sum(ppc_review == "NOT STATED"),
+            yesReview = anyReview - sum(ppc_review == "NO"),
+            yesPercent = round((yesReview / n()) * 100)   # Percentage reviewed from All Types 
+  )
+
+prominentReviewAll
+
+```
+
+```{r}
+# Peer review statistics by types
+prominentReviewAll <- dj_prominent %>%
+  select(c(journal_name, ppc_name, ppc_review)) %>%
+  filter(!is.na(ppc_name)) %>%
+  group_by(ppc_name) %>%
+  summarise(anyReview = n() - sum(ppc_review == "NOT STATED"),
+            yesReview = anyReview - sum(ppc_review == "NO"),
+            yesPercent = round((yesReview / n()) * 100)
+  ) %>%
+  ungroup()
+
+prominentReviewAll
+
+```
+
+## Calculations for Table 2: Randomly selected journals
+
+Check length limits placed on PPC options in randomly selected journals
+```{r}
+# Summarise length statistics for All Types
+randomLengthAll <- dj_random %>%
+ filter(!is.na(ppc_name)) %>% 
+ select(c(journal_name, ppc_name, ppc_length)) %>%
+ mutate(quantLength = case_when(
+    ppc_length == "NOT STATED" | ppc_length == "Qualitative" ~ NA_real_,
+    TRUE ~ as.numeric(ppc_length) # create a column that contains only quantitative limits
+  )) %>%
+ summarise(
+    anyLimit = n() - sum(ppc_length == "NOT STATED"),
+    anyPercent = round((anyLimit / n()) * 100),
+    quantLimit = anyLimit - sum(ppc_length == "Qualitative"),
+    quantPercent = round((quantLimit / n()) * 100),
+    medianLength = median(quantLength, na.rm = TRUE),
+    Q1 = quantile(quantLength, probs = 0.25, na.rm = TRUE),
+    Q3 = quantile(quantLength, probs = 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1 
+ ) 
+
+randomLengthAll
+```
+
+``` {r}
+# Summarise length Statistics for each PPC type
+randomLengthType <- dj_random %>%
+ filter(!is.na(ppc_name)) %>% 
+ select(c(journal_name, ppc_name, ppc_length)) %>%
+ mutate(quantLength = case_when(
+    ppc_length == "NOT STATED" | ppc_length == "Qualitative" ~ NA_real_,
+    TRUE ~ as.numeric(ppc_length) # create a column that contains only quantitative limits
+  )) %>%
+ group_by(ppc_name) %>%
+ summarise(
+    anyLimit = n() - sum(ppc_length == "NOT STATED"),
+    anyPercent = round((anyLimit / n()) * 100),
+    quantLimit = anyLimit - sum(ppc_length == "Qualitative"),
+    quantPercent = round((quantLimit / n()) * 100),
+    medianLength = median(quantLength, na.rm = TRUE),
+    Q1 = quantile(quantLength, probs = 0.25, na.rm = TRUE),
+    Q3 = quantile(quantLength, probs = 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1 
+ ) %>%
+  ungroup()
+
+randomLengthType
+```
+Check time-to-submit limits placed on PPC options in prominent journals
+```{r}
+# Summarise time-to-submit statistics for All Types
+randomTimeAll <- dj_random %>%
+ filter(!is.na(ppc_name)) %>% 
+ select(c(journal_name, ppc_name, ppc_time)) %>%
+ mutate(quantTime = case_when(
+    ppc_time == "NOT STATED" | ppc_time == "Qualitative" ~ NA_real_,
+    TRUE ~ as.numeric(ppc_time) # create a column that contains only quantitative limits
+  )) %>%
+ summarise(
+    anyLimit = n() - sum(ppc_time == "NOT STATED"),
+    anyPercent = round((anyLimit / n()) * 100),
+    quantLimit = anyLimit - sum(ppc_time == "Qualitative"),
+    quantPercent = round((quantLimit / n()) * 100),
+    medianTime = median(quantTime, na.rm = TRUE),
+    Q1 = quantile(quantTime, probs = 0.25, na.rm = TRUE),
+    Q3 = quantile(quantTime, probs = 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1 
+ ) 
+
+randomTimeAll
+```
+
+``` {r}
+# Summarise time-to-submit Statistics for each PPC type
+randomTimeType <- dj_random %>%
+ filter(!is.na(ppc_name)) %>% 
+ select(c(journal_name, ppc_name, ppc_time)) %>%
+ mutate(quantTime = case_when(
+    ppc_time == "NOT STATED" | ppc_time == "Qualitative" ~ NA_real_,
+    TRUE ~ as.numeric(ppc_time) # create a column that contains only quantitative limits
+  )) %>%
+  group_by(ppc_name) %>%
+ summarise(
+    anyLimit = n() - sum(ppc_time == "NOT STATED"),
+    anyPercent = round((anyLimit / n()) * 100),
+    quantLimit = anyLimit - sum(ppc_time == "Qualitative"),
+    quantPercent = round((quantLimit / n()) * 100),
+    medianTime = median(quantTime, na.rm = TRUE),
+    Q1 = quantile(quantTime, probs = 0.25, na.rm = TRUE),
+    Q3 = quantile(quantTime, probs = 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1 
+ ) %>%
+  ungroup()
+
+randomTimeType
+```
+Check reference limits placed on PPC options in prominent journals
+```{r}
+# Summarise reference statistics for All Types
+randomRefAll <- dj_random %>%
+ filter(!is.na(ppc_name)) %>% 
+ select(c(journal_name, ppc_name, ppc_ref)) %>%
+ mutate(quantRef = case_when(
+    ppc_ref == "NOT STATED" | ppc_ref == "Qualitative" ~ NA_real_,
+    TRUE ~ as.numeric(ppc_ref) # create a column that contains only quantitative limits
+  )) %>%
+ summarise(
+    anyLimit = n() - sum(ppc_ref == "NOT STATED"),
+    anyPercent = round((anyLimit / n()) * 100),
+    quantLimit = anyLimit - sum(ppc_ref == "Qualitative"),
+    quantPercent = round((quantLimit / n()) * 100),
+    medianRef = median(quantRef, na.rm = TRUE),
+    Q1 = quantile(quantRef, probs = 0.25, na.rm = TRUE),
+    Q3 = quantile(quantRef, probs = 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1 
+ ) 
+
+randomRefAll
+```
+
+```{r}
+# Summarise reference statistics by type
+randomRefType <- dj_random %>%
+ filter(!is.na(ppc_name)) %>% 
+ select(c(journal_name, ppc_name, ppc_ref)) %>%
+ mutate(quantRef = case_when(
+    ppc_ref == "NOT STATED" | ppc_ref == "Qualitative" ~ NA_real_,
+    TRUE ~ as.numeric(ppc_ref) # create a column that contains only quantitative limits
+  )) %>%
+  group_by(ppc_name) %>%
+ summarise(
+    anyLimit = n() - sum(ppc_ref == "NOT STATED"),
+    anyPercent = round((anyLimit / n()) * 100),
+    quantLimit = anyLimit - sum(ppc_ref == "Qualitative"),
+    quantPercent = round((quantLimit / n()) * 100),
+    medianRef = median(quantRef, na.rm = TRUE),
+    Q1 = quantile(quantRef, probs = 0.25, na.rm = TRUE),
+    Q3 = quantile(quantRef, probs = 0.75, na.rm = TRUE),
+    IQR = Q3 - Q1 
+ ) %>%
+  ungroup()
+
+randomRefType
+```
+Check how many PPC options are sent for external peer review in prominent journals
+```{r}
+# Peer review statistics for All Types
+randomReviewAll <- dj_random %>%
+  select(c(journal_name, ppc_name, ppc_review)) %>%
+  filter(!is.na(ppc_name)) %>%
+  summarise(anyReview = n() - sum(ppc_review == "NOT STATED"),
+            yesReview = anyReview - sum(ppc_review == "NO"),
+            yesPercent = round((yesReview / n()) * 100)   # Percentage reviewed from All Types 
+  )
+
+randomReviewAll
+
+```
+
+```{r}
+# Peer review statistics by types
+randomReviewAll <- dj_random %>%
+  select(c(journal_name, ppc_name, ppc_review)) %>%
+  filter(!is.na(ppc_name)) %>%
+  group_by(ppc_name) %>%
+  summarise(anyReview = n() - sum(ppc_review == "NOT STATED"),
+            yesReview = anyReview - sum(ppc_review == "NO"),
+            yesPercent = round((yesReview / n()) * 100)
+  ) %>%
+  ungroup()
+
+randomReviewAll
+
+```
