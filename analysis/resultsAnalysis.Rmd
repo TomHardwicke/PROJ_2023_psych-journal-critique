@@ -17,6 +17,7 @@ knitr::opts_chunk$set(echo = TRUE)
 # Load libraries
 library(here)
 library(lsr)
+library(dplyr)
 library(tidyverse)
 library(tidylog)
 library(binom)
@@ -32,6 +33,8 @@ library(assertthat)
 d_articles <- read_csv(here('data', 'processed', 'd_articles.csv'), show_col_types = F) # article data 
 d_journals <- read_csv(here('data', 'processed', 'd_journals.csv'), show_col_types = F) # journal data
 ```
+
+*Note.* PPC = post-publication critique
 
 # STUDY ONE: JOURNAL POLICY
 
@@ -53,7 +56,7 @@ assert_that(
   msg = "Found unexpected values in the sample_id or is_empirical columns"
   )
 
-# Run a test to ensure all prominent sample and non-empirical journals removed from dj_prominent
+# Run a test to ensure all prominent sample and non-empirical journals removed from dj_random
 assert_that(
   all(dj_random$sample_id == "random" | 
         dj_random$sample_id == "both" 
@@ -93,7 +96,6 @@ randomJIF <- dj_random %>%
 
 randomJIF
 ```
-
 
 Count prominent journals listed as COPE members 
 ```{r}
@@ -137,7 +139,7 @@ randomCategory
 ```
 ## How many journals offer post-publication critique?
 
-Inspect how frequently post-publication critique policies were stated for prominent journals 
+Inspect how frequently PPC policies were stated for prominent journals 
 ```{r}
 prominentPPC <- dj_prominent %>%
   filter(ppc_type == 'A') %>%
@@ -153,7 +155,7 @@ dj_prominent %>%
   filter(ppc_type == "A" & has_ppc == "NO EXPLICIT") %>%
   print()
 ```
-Get how many prominent journals offered more than one type
+Get how many prominent journals offered more than one type of PPC
 ```{r}
 # Return all rows with ppc_name values for ppc_type B and C
 dj_prominent %>%
@@ -165,7 +167,7 @@ dj_prominent %>%
   summarise(count = n())
 ```
 
-Inspect post-publication critique types at prominent journals
+Inspect PPC types at prominent journals
 ```{r}
 # Counts for all types of PPC, commentary only, and letters only
 promAllTypes <- dj_prominent %>%
@@ -205,7 +207,7 @@ promCOPEtable <- dj_prominent %>%
 promCOPEtable
 ```
 
-Inspect how frequently post-publication critique policies were stated for randomly selected journals 
+Inspect how frequently PPC policies were stated for randomly selected journals 
 ```{r}
 randomPPC <- dj_random %>%
   filter(ppc_type == 'A') %>%
@@ -216,7 +218,7 @@ randomPPC <- dj_random %>%
 randomPPC
 ```
 
-Calculate confidence interval for explicitly stated post-publication critique policies among randomly selected journals
+Calculate confidence interval for explicitly stated PPC policies among randomly selected journals
 ```{r}
 
 randomPPCyes <- dj_random %>%
@@ -232,7 +234,7 @@ randomPPC_CI <- binom.confint(randomPPCyes, sample_size, method = "wilson", conf
 
 randomPPC_CI
 ```
-Get how many randomly selected journals offered more than one type
+Get how many randomly selected journals offered more than one type of PPC
 ```{r}
 # Return all rows with ppc_name values for ppc_type B and C
 dj_random %>%
@@ -244,7 +246,6 @@ dj_random %>%
   summarise(count = n())
 ```
 
-
 Get the names of the randomly samples journals that have 'NO EXPLICIT' PPC options
 ```{r}
 dj_random %>%
@@ -252,7 +253,7 @@ dj_random %>%
   print()
 ```
 
-Inspect post-publication critique types at randomly selected journals
+Inspect PPC types at randomly selected journals
 ```{r}
 randomTypes <- dj_random %>%
   filter(!is.na(ppc_name)) %>%
@@ -284,6 +285,7 @@ randCOPEtable
 ```
 
 # What limits did journals place on post-publication critique?
+
 Find the most restrictive limits of any journal
 ```{r}
 # Find the lowest length limit
@@ -311,9 +313,8 @@ minTime <- d_journals %>%
 minTime
 ```
 
-
-
 ## Calculations for Table 1: Prominent journals
+
 Check length limits placed on PPC options in prominent journals
 ```{r}
 # Summarise length statistics for All Types
@@ -362,6 +363,7 @@ prominentLengthType <- dj_prominent %>%
 
 prominentLengthType
 ```
+
 Check time-to-submit limits placed on PPC options in prominent journals
 ```{r}
 # Summarise time-to-submit statistics for All Types
@@ -410,6 +412,7 @@ prominentTimeType <- dj_prominent %>%
 
 prominentTimeType
 ```
+
 Check reference limits placed on PPC options in prominent journals
 ```{r}
 # Summarise reference statistics for All Types
@@ -458,6 +461,7 @@ prominentRefType <- dj_prominent %>%
 
 prominentRefType
 ```
+
 Check how many PPC options are sent for external peer review in prominent journals
 ```{r}
 # Peer review statistics for All Types
@@ -663,5 +667,108 @@ randomReviewAll <- dj_random %>%
   ungroup()
 
 randomReviewAll
+```
+# STUDY 2: PREVALENCE 
 
+Look for links to PPC in articles published in prominent journals
+```{r}
+d_articles %>%
+  filter(sample_id == "prominent",
+         ppc_linked == TRUE) %>%
+  summarise(n = n())
+```
+
+Calculate CIs for Linked PPC 
+```{r}
+sample_size_a <- 101
+
+# Linked PPCs
+prominent_linked <- d_articles %>% # counts number of linked PPC events
+  filter(sample_id == "prominent",
+         ppc_linked == TRUE) %>%
+  count()
+
+ci_linked <- binom.confint(prominent_linked$n, sample_size_a, method = "wilson", conf.level = confidence_level)
+
+# Convert the lower and upper limits to percentages and round them to one decimal place
+ci_promLinked_LL <- round(ci_linked$lower*100, 1)
+ci_promLinked_UL <- round(ci_linked$upper*100, 1)
+
+ci_promLinked_LL
+ci_promLinked_UL
+```
+
+Look for instances of PPC in articles published in prominent journals
+```{r}
+d_articles %>%
+  filter(sample_id == "prominent",
+         exclude_reason == "IS ITSELF PPC") %>%
+  summarise(n = n())
+```
+Calculate CIs for Instance PPC in prominent journals
+```{r}
+# Instance PPCs
+prominent_instance <- d_articles %>% # counts number of linked PPC events
+  filter(sample_id == "prominent",
+    exclude_reason == "IS ITSELF PPC") %>%
+  count()
+
+ci_instance <- binom.confint(prominent_instance$n, sample_size_a, method = "wilson", conf.level = confidence_level)
+
+# Convert the lower and upper limits to percentages and round them to one decimal place
+ci_promInstance_LL <- round(ci_instance$lower*100, 1)
+ci_promIinstance_UL <- round(ci_instance$upper*100, 1)
+
+ci_promInstance_LL
+ci_promIinstance_UL
+```
+Look for linked PPC in articles in random sample
+```{r}
+d_articles %>%
+  filter(sample_id == "random",
+         ppc_linked == TRUE) %>%
+  summarise(n = n())
+```
+
+Calculate CIs for linked PPC in articles in random sample
+```{r}
+# Linked PPCs
+random_linked <- d_articles %>% # counts number of linked PPC events
+  filter(sample_id == "random",
+         ppc_linked == TRUE) %>%
+  count()
+
+ci_Rlinked <- binom.confint(random_linked$n, sample_size_a, method = "wilson", conf.level = confidence_level)
+
+# Convert the lower and upper limits to percentages and round them to one decimal place
+ci_randLinked_LL <- round(ci_Rlinked$lower*100, 1)
+ci_randLinked_UL <- round(ci_Rlinked$upper*100, 1)
+
+ci_randLinked_LL
+ci_randLinked_UL
+```
+Look for instances of PPC in articles in random sample
+```{r}
+d_articles %>%
+  filter(sample_id == "random",
+         exclude_reason == "IS ITSELF PPC") %>%
+  summarise(n = n())
+```
+
+Calculate CIs for Instance PPC in random sample
+```{r}
+# Instance PPCs
+random_instance <- d_articles %>% # counts number of linked PPC events
+  filter(sample_id == "random",
+    exclude_reason == "IS ITSELF PPC") %>%
+  count()
+
+ci_Rinstance <- binom.confint(random_instance$n, sample_size_a, method = "wilson", conf.level = confidence_level)
+
+# Convert the lower and upper limits to percentages and round them to one decimal place
+ci_randInstance_LL <- round(ci_Rinstance$lower*100, 1)
+ci_randIinstance_UL <- round(ci_Rinstance$upper*100, 1)
+
+ci_randInstance_LL
+ci_randIinstance_UL
 ```

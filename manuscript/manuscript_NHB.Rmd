@@ -23,11 +23,9 @@ abstract: "Fostering critical discussion is essential to upholding the ethos of 
   critique options and encourage their use.\n"
 keywords: "post-publication critique, peer review, psychology, meta-research, journal
   policy, self-correction, scientific criticism"
-
 bibliography: references.bib
 link-citations: true
 csl: nature.csl
-
 floatsintext: false
 figurelist: false
 tablelist: false
@@ -41,7 +39,6 @@ urlcolor: blue
 
 
 ```{r setup, include = FALSE}
-
 library(papaja) # article template
 library(tidyverse)
 library(ggplot2) # figure creation
@@ -82,18 +79,6 @@ dj_random <- d_journals %>%
 
 # Main
 *Add 'Introduction' section*
-
-
-``` {r echo = FALSE, message = FALSE}
-#ERR: Table currently inserts under results in PDF. Format is horrendous in Word.
-
-PPCtypes %>%
-  kbl(align = c(rep("l", 1), rep("c", 5), rep("l", 1)), caption = "Common post-publication critique types including median restrictions, peer review policies, and descriptions",
-      col.names = c("Type", "Length", "Time-to-submit", "References", "Peer-review", "DOI", "Description")) %>%
-  kable_styling(bootstrap_options = c("striped", "condensed"), full_width = TRUE) %>%
-  row_spec(0, bold = TRUE, align = "c")
-
-```
 
 
 # Results
@@ -198,6 +183,7 @@ graph2 <- dj_prominent %>%
 combined_plots <- graph2 + graph1
 combined_plots
 
+ggsave("ProminentJournalPolicies.png", plot = last_plot(), device = "png")
 ```
 
 *Note.* PPC = post-publication critique. Orange bar (left) indicates policy statements for each journal included in sample (n = 100). Blue bars (right) indicate how length and time-to-submit restrictions were stated in cases where journals had explicit post-publication critique policies in place (n = 41). Implicit acceptance denoted by archival examples of critiques despite absence of stated policy.
@@ -479,6 +465,8 @@ graph3 <- d_journals %>%
 # Arrange both graphs in the same figure
 combined_plots <- graph3 + graph4
 combined_plots
+
+ggsave("RandomJournalPolicies.png", plot = last_plot(), device = "png")
 ```
 
 ``` {r echo = FALSE, message = FALSE}
