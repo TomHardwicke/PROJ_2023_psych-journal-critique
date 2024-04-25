@@ -98,7 +98,7 @@ d_journals <- d_journals %>%
   filter(!(journal == "HUMAN ARENAS" & timestamps == "8/6/2023 3:37:26" & coder_id != "FINAL (TEH)"))
 ```
 
-For the journal INFANTS & YOUNG CHILDREN, MN coded twice, first entry was an error and needs to be removed.
+For the journal INFANTS & YOUNG CHILDREN, NM coded twice, first entry was an error and needs to be removed.
 
 ```{r}
 d_journals <- d_journals %>%
