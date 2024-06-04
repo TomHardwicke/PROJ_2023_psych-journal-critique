@@ -756,23 +756,32 @@ quantLength <- d_journals %>%
  filter(!is.na(ppc_length),
          ppc_length != "NOT STATED",
          ppc_length != "Qualitative") %>%
- mutate(Length = as.numeric(ppc_length))
+ mutate(Length = as.numeric(ppc_length)) 
 
 quantLength %>%  
  ggplot(mapping = aes(x = ppc_name, y = Length, colour = sample_id)) +
- geom_violin(
+ geom_boxplot(
     color = "black",
     fill = "lightblue",
-    alpha = 0.5
+    alpha = 0.4
  ) +
- geom_jitter(width = 0.1,
-             alpha = 0.8) + 
- scale_fill_brewer(palette = "Set2") +
- scale_color_brewer(palette = "Set2") +
+ geom_jitter(width = 0.3,
+             alpha = 0.8,
+             size = 2) + 
+ scale_color_manual(values = c("prominent" =  "#ff6347", 
+                              "random" =   "#8db600",
+                              "both" = "#000080")
+                    ) +
  coord_flip() +
+ scale_y_continuous(n.breaks = 8) +
  theme_bw() +
- labs(title = "All stated quantitative length Limits", x = "Post-publication critique type", y = "Length limits (words)")
+ theme(axis.text.y = element_text(angle = 90, hjust = 0.5)) +
+ labs(title = "All stated quantitative length limits", 
+      x = "Post-publication critique type", 
+      y = "Length limits (words)", 
+      colour = "Sample")
 
+ggsave("lengthLimits.png", plot = last_plot(), device = "png")
 ```
 Boxplot of quantitative time limits
 ```{r}
@@ -788,14 +797,24 @@ quantTime %>%
  geom_boxplot(
     color = "black",
     fill = "lightblue",
-    alpha = 0.5
+    alpha = 0.4
  ) +
- geom_jitter(width = 0.2) + 
- scale_fill_brewer(palette = "Set2") +
- scale_color_brewer(palette = "Set2") +
+ geom_jitter(width = 0.2,
+             alpha = 0.8,
+             size = 2) + 
+ scale_color_manual(values = c("prominent" =  "#ff6347", 
+                              "random" =   "#8db600",
+                              "both" = "#000080")
+                    ) +
  coord_flip() +
  theme_bw() +
- labs(title = "All stated quantitative time limits", x = "Post-publication critique type", y = "Time limits (weeks)")
+ theme(axis.text.y = element_text(angle = 90, hjust = 0.5)) +
+ labs(title = "All stated quantitative time limits", 
+      x = "Post-publication critique type", 
+      y = "Time limits (weeks)", 
+      colour = "Sample")
+
+ggsave("timeLimits.png", plot = last_plot(), device = "png")
 ```
 ### *Post-Publication Critique Policy and Restriction Statements in Prominent Psychology Journals*
 
@@ -875,7 +894,7 @@ graph2 <- dj_prominent %>%
 combined_plots <- graph2 + graph1
 combined_plots
 
-#ggsave("ProminentJournalPolicies.png", plot = last_plot(), device = "png")
+ggsave("ProminentJournalPolicies.png", plot = last_plot(), device = "png")
 ```
 
 ### *Post-Publication Critique Policy and Restriction Statements in Randomly-selected Psychology Journals*
@@ -960,5 +979,5 @@ graph3 <- d_journals %>%
 combined_plots <- graph3 + graph4
 combined_plots
 
-#ggsave("RandomJournalPolicies.png", plot = last_plot(), device = "png")
+ggsave("RandomJournalPolicies.png", plot = last_plot(), device = "png")
 ```
