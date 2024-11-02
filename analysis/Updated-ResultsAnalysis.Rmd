@@ -3,8 +3,8 @@ title: "Results Analysis"
 author: "Annie Whamond"
 date: "2024-04-10"
 output:
-  pdf_document: default
   html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -21,8 +21,6 @@ library(dplyr)
 library(tidyverse)
 library(tidylog)
 library(binom)
-library(ggplot2)
-library(RColorBrewer)
 library(assertthat)
 library(kableExtra)
 library(webshot2)
@@ -50,6 +48,7 @@ dj_random <- d_journals %>%
   filter(sample_id != "prominent") %>%
   filter(is_empirical == TRUE)
 ```
+
 Run assertion checks for both samples
 ```{r}
 # Check all randomly-selected and non-empirical journals have been removed from dj_prominent
@@ -66,25 +65,11 @@ assert_that(
       & dj_random$is_empirical == TRUE),
   msg = "Found unexpected values in the sample_id or is_empirical columns"
   )
-
 ```
 
 ## Journal characteristics
-Descriptive statistics 
 
-Calculate JIF median and IQR for prominent journals
-```{r}
-# Prominent journal sample
-prominentJIF <- dj_prominent %>% 
-  filter(ppc_type == "A") %>%      # Keep only single entry for each journal
-  summarise(promMedian_jif = round(median(jif),2), 
-            promMin_jif = round(min(jif),2),
-            promMax_jif = round(max(jif),2),
-            promIQR_jif = round(IQR(jif),2)
-  )
-
-prominentJIF
-```
+*Descriptive statistics*
 
 Calculate JIF median and IQR for random journals
 ```{r}
@@ -100,6 +85,29 @@ randomJIF <- dj_random %>%
 randomJIF
 ```
 
+Calculate JIF median and IQR for prominent journals
+```{r}
+# Prominent journal sample
+prominentJIF <- dj_prominent %>% 
+  filter(ppc_type == "A") %>%      # Keep only single entry for each journal
+  summarise(promMedian_jif = round(median(jif),2), 
+            promMin_jif = round(min(jif),2),
+            promMax_jif = round(max(jif),2),
+            promIQR_jif = round(IQR(jif),2)
+  )
+
+prominentJIF
+```
+Count randomly selected journals listed as COPE members 
+```{r}
+randomCOPE <- dj_random %>%
+  filter(ppc_type == 'A') %>%
+  filter(cope == TRUE) %>%
+  summarise(count = n())
+
+randomCOPE
+```
+
 Count prominent journals listed as COPE members 
 ```{r}
 prominentCOPE <- dj_prominent %>%
@@ -110,14 +118,17 @@ prominentCOPE <- dj_prominent %>%
 prominentCOPE
 ```
 
-Count randomly selected journals listed as COPE members 
-```{r}
-randomCOPE <- dj_random %>%
-  filter(ppc_type == 'A') %>%
-  filter(cope == TRUE) %>%
-  summarise(count = n())
+*Supplementary Information I: Descriptive statistics for both journal samples*
 
-randomCOPE
+Random journals Web Of Science categories
+```{r}
+randomCategory <- dj_random %>%
+  filter(ppc_type == 'A') %>%
+  group_by(field) %>%
+  summarise(count = n()) %>%
+  ungroup()
+
+randomCategory
 ```
 
 Prominent journals Web Of Science categories
@@ -131,20 +142,9 @@ prominentCategory <- dj_prominent %>%
 prominentCategory
 ```
 
-Random journals Web Of Science categories
-```{r}
-randomCategory <- dj_random %>%
-  filter(ppc_type == 'A') %>%
-  group_by(field) %>%
-  summarise(count = n()) %>%
-  ungroup()
-
-randomCategory
-```
-
 ## How many journals offer post-publication critique?
 
-RANDOMLY-SELECTED SAMPLE
+**RANDOMLY-SELECTED SAMPLE**
 
 Inspect how frequently PPC policies were stated for randomly selected journals 
 ```{r}
@@ -230,7 +230,7 @@ randomCOPE <- dj_random %>%
 randomCOPE
 ```
 
-PROMINENT SAMPLE
+**PROMINENT SAMPLE**
 
 Inspect how frequently PPC policies were stated for prominent journals 
 ```{r}
@@ -285,7 +285,7 @@ promCOPE
 
 # What limits did journals place on post-publication critique?
 
-Find the most restrictive limits of any journal
+Find the most restrictive length limit of any journal
 ```{r}
 # Find the lowest length limit
 minLength <- d_journals %>%
@@ -299,6 +299,7 @@ minLength <- d_journals %>%
 minLength
 ```
 
+Find the most restrictive time limit of any journal
 ``` {r}
 # Find the lowest time-to-submit limit
 minTime <- d_journals %>%
@@ -959,6 +960,9 @@ d_articles %>%
 
 Calculate CIs for linked PPC in articles in random sample
 ```{r}
+# Specify sample size for articles (same for both samples)
+sample_size_a <- 101
+
 # Linked PPCs
 random_linked <- d_articles %>% # counts number of linked PPC events
   filter(sample_id == "random",
@@ -1013,8 +1017,6 @@ d_articles %>%
 
 Calculate CIs for Linked PPC 
 ```{r}
-sample_size_a <- 101
-
 # Linked PPCs
 prominent_linked <- d_articles %>% # counts number of linked PPC events
   filter(sample_id == "prominent",
