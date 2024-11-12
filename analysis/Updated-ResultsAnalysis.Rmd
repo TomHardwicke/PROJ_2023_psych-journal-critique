@@ -331,8 +331,8 @@ randomLengthAll <- dj_random %>%
     quantLimit = anyLimit - sum(ppc_length == "Qualitative"),
     quantPercent = round((quantLimit / n()) * 100),
     medianLength = median(quantLength, na.rm = TRUE),
-    Q1 = quantile(quantLength, probs = 0.25, na.rm = TRUE),
-    Q3 = quantile(quantLength, probs = 0.75, na.rm = TRUE),
+    Q1 = round(quantile(quantLength, probs = 0.25, na.rm = TRUE)),
+    Q3 = round(quantile(quantLength, probs = 0.75, na.rm = TRUE)),
     IQR = round(Q3 - Q1)
  ) 
 
@@ -341,7 +341,7 @@ randomLengthAll_1 <- randomLengthAll %>%
   mutate('Post-publication critique type' = "All types") %>% 
   mutate('any n (%)' = paste(anyLimit, " (", anyPercent, ")", sep = "")) %>% 
   mutate('quantitative n (%)' = paste(quantLimit, " (", quantPercent, ")", sep = "")) %>% 
-  mutate('median (IQR)' = paste(medianLength, " (", IQR, ")", sep = "")) %>% 
+  mutate('median (IQR)' = paste(medianLength, " (", Q1, " - ", Q3, ")", sep = "")) %>% 
   select('Post-publication critique type', 'any n (%)', 'quantitative n (%)', 'median (IQR)')
 ```
 
@@ -361,8 +361,8 @@ randomLengthType <- dj_random %>%
     quantLimit = anyLimit - sum(ppc_length == "Qualitative"),
     quantPercent = round((quantLimit / n()) * 100),
     medianLength = median(quantLength, na.rm = TRUE),
-    Q1 = quantile(quantLength, probs = 0.25, na.rm = TRUE),
-    Q3 = quantile(quantLength, probs = 0.75, na.rm = TRUE),
+    Q1 = round(quantile(quantLength, probs = 0.25, na.rm = TRUE)),
+    Q3 = round(quantile(quantLength, probs = 0.75, na.rm = TRUE)),
     IQR = Q3 - Q1 
  ) %>%
   ungroup()
@@ -372,7 +372,7 @@ randomLengthType_1 <- randomLengthType %>%
   mutate('Post-publication critique type' = ppc_name) %>% 
   mutate('any n (%)' = paste(anyLimit, " (", anyPercent, ")", sep = "")) %>% 
   mutate('quantitative n (%)' = paste(quantLimit, " (", quantPercent, ")", sep = "")) %>% 
-  mutate('median (IQR)' = paste(medianLength, " (", IQR, ")", sep = "")) %>% 
+  mutate('median (IQR)' = paste(medianLength, " (", Q1, " - ", Q3, ")", sep = "")) %>% 
   select('Post-publication critique type', 'any n (%)', 'quantitative n (%)', 'median (IQR)')
 ```
 
@@ -400,8 +400,8 @@ randomTimeAll <- dj_random %>%
     quantLimit = anyLimit - sum(ppc_time == "Qualitative"),
     quantPercent = round((quantLimit / n()) * 100),
     medianTime = median(quantTime, na.rm = TRUE),
-    Q1 = quantile(quantTime, probs = 0.25, na.rm = TRUE),
-    Q3 = quantile(quantTime, probs = 0.75, na.rm = TRUE),
+    Q1 = round(quantile(quantTime, probs = 0.25, na.rm = TRUE)),
+    Q3 = round(quantile(quantTime, probs = 0.75, na.rm = TRUE)),
     IQR = Q3 - Q1 
  ) 
 
@@ -410,7 +410,7 @@ randomTimeAll_1 <- randomTimeAll %>%
   mutate('Post-publication critique type' = "All Types") %>% 
   mutate('any n (%)' = paste(anyLimit, " (", anyPercent, ")", sep = "")) %>% 
   mutate('quantitative n (%)' = paste(quantLimit, " (", quantPercent, ")", sep = "")) %>% 
-  mutate('median (IQR)' = paste(medianTime, " (", IQR, ")", sep = "")) %>% 
+  mutate('median (IQR)' = paste(medianTime, " (", Q1, " - ", Q3, ")", sep = "")) %>% 
   select('Post-publication critique type', 'any n (%)', 'quantitative n (%)', 'median (IQR)')
 ```
 
@@ -430,8 +430,8 @@ randomTimeType <- dj_random %>%
     quantLimit = anyLimit - sum(ppc_time == "Qualitative"),
     quantPercent = round((quantLimit / n()) * 100),
     medianTime = median(quantTime, na.rm = TRUE),
-    Q1 = quantile(quantTime, probs = 0.25, na.rm = TRUE),
-    Q3 = quantile(quantTime, probs = 0.75, na.rm = TRUE),
+    Q1 = round(quantile(quantTime, probs = 0.25, na.rm = TRUE)),
+    Q3 = round(quantile(quantTime, probs = 0.75, na.rm = TRUE)),
     IQR = round(Q3 - Q1)
  ) %>%
   ungroup()
@@ -441,7 +441,7 @@ randomTimeType_1 <- randomTimeType %>%
   mutate('Post-publication critique type' = ppc_name) %>% 
   mutate('any n (%)' = paste(anyLimit, " (", anyPercent, ")", sep = "")) %>% 
   mutate('quantitative n (%)' = paste(quantLimit, " (", quantPercent, ")", sep = "")) %>% 
-  mutate('median (IQR)' = paste(medianTime, " (", IQR, ")", sep = "")) %>% 
+  mutate('median (IQR)' = paste(medianTime, " (", Q1, " - ", Q3, ")", sep = "")) %>% 
   select('Post-publication critique type', 'any n (%)', 'quantitative n (%)', 'median (IQR)')
 ```
 
@@ -469,8 +469,8 @@ randomRefAll <- dj_random %>%
     quantLimit = anyLimit - sum(ppc_ref == "Qualitative"),
     quantPercent = round((quantLimit / n()) * 100),
     medianRef = median(quantRef, na.rm = TRUE),
-    Q1 = quantile(quantRef, probs = 0.25, na.rm = TRUE),
-    Q3 = quantile(quantRef, probs = 0.75, na.rm = TRUE),
+    Q1 = round(quantile(quantRef, probs = 0.25, na.rm = TRUE)),
+    Q3 = round(quantile(quantRef, probs = 0.75, na.rm = TRUE)),
     IQR = round(Q3 - Q1)
  )
 
@@ -479,7 +479,7 @@ randomRefAll_1 <- randomRefAll %>%
   mutate('Post-publication critique type' = "All types") %>% 
   mutate('any n (%)' = paste(anyLimit, " (", anyPercent, ")", sep = "")) %>% 
   mutate('quantitative n (%)' = paste(quantLimit, " (", quantPercent, ")", sep = "")) %>% 
-  mutate('median (IQR)' = paste(medianRef, " (", IQR, ")", sep = "")) %>% 
+  mutate('median (IQR)' = paste(medianRef, " (", Q1, " - ", Q3, ")", sep = "")) %>% 
   select('Post-publication critique type', 'any n (%)', 'quantitative n (%)', 'median (IQR)')
 ```
 
@@ -499,8 +499,8 @@ randomRefType <- dj_random %>%
     quantLimit = anyLimit - sum(ppc_ref == "Qualitative"),
     quantPercent = round((quantLimit / n()) * 100),
     medianRef = median(quantRef, na.rm = TRUE),
-    Q1 = quantile(quantRef, probs = 0.25, na.rm = TRUE),
-    Q3 = quantile(quantRef, probs = 0.75, na.rm = TRUE),
+    Q1 = round(quantile(quantRef, probs = 0.25, na.rm = TRUE)),
+    Q3 = round(quantile(quantRef, probs = 0.75, na.rm = TRUE)),
     IQR = round(Q3 - Q1)
  ) %>%
   ungroup()
@@ -510,7 +510,7 @@ randomRefType_1 <- randomRefType %>%
   mutate('Post-publication critique type' = ppc_name) %>% 
   mutate('any n (%)' = paste(anyLimit, " (", anyPercent, ")", sep = "")) %>% 
   mutate('quantitative n (%)' = paste(quantLimit, " (", quantPercent, ")", sep = "")) %>% 
-  mutate('median (IQR)' = paste(medianRef, " (", IQR, ")", sep = "")) %>% 
+  mutate('median (IQR)' = paste(medianRef, " (", Q1, " - ", Q3, ")", sep = "")) %>% 
   select('Post-publication critique type', 'any n (%)', 'quantitative n (%)', 'median (IQR)')
 ```
 
@@ -647,8 +647,8 @@ prominentLengthAll <- dj_prominent %>%
     quantLimit = anyLimit - sum(ppc_length == "Qualitative"),
     quantPercent = round((quantLimit / n()) * 100),
     medianLength = median(quantLength, na.rm = TRUE),
-    Q1 = quantile(quantLength, probs = 0.25, na.rm = TRUE),
-    Q3 = quantile(quantLength, probs = 0.75, na.rm = TRUE),
+    Q1 = round(quantile(quantLength, probs = 0.25, na.rm = TRUE)),
+    Q3 = round(quantile(quantLength, probs = 0.75, na.rm = TRUE)),
     IQR = round(Q3 - Q1)
  ) 
 
@@ -657,7 +657,7 @@ prominentLengthAll_1 <- prominentLengthAll %>%
   mutate('Post-publication critique type' = "All types") %>% 
   mutate('any n (%)' = paste(anyLimit, " (", anyPercent, ")", sep = "")) %>% 
   mutate('quantitative n (%)' = paste(quantLimit, " (", quantPercent, ")", sep = "")) %>% 
-  mutate('median (IQR)' = paste(medianLength, " (", IQR, ")", sep = "")) %>% 
+  mutate('median (IQR)' = paste(medianLength, " (", Q1, " - ", Q3, ")", sep = "")) %>% 
   select('Post-publication critique type', 'any n (%)', 'quantitative n (%)', 'median (IQR)')
 ```
 
@@ -677,8 +677,8 @@ prominentLengthType <- dj_prominent %>%
     quantLimit = anyLimit - sum(ppc_length == "Qualitative"),
     quantPercent = round((quantLimit / n()) * 100),
     medianLength = median(quantLength, na.rm = TRUE),
-    Q1 = quantile(quantLength, probs = 0.25, na.rm = TRUE),
-    Q3 = quantile(quantLength, probs = 0.75, na.rm = TRUE),
+    Q1 = round(quantile(quantLength, probs = 0.25, na.rm = TRUE)),
+    Q3 = round(quantile(quantLength, probs = 0.75, na.rm = TRUE)),
     IQR = round(Q3 - Q1)
  ) %>%
   ungroup()
@@ -688,7 +688,7 @@ prominentLengthType_1 <- prominentLengthType %>%
   mutate('Post-publication critique type' = ppc_name) %>% 
   mutate('any n (%)' = paste(anyLimit, " (", anyPercent, ")", sep = "")) %>% 
   mutate('quantitative n (%)' = paste(quantLimit, " (", quantPercent, ")", sep = "")) %>% 
-  mutate('median (IQR)' = paste(medianLength, " (", IQR, ")", sep = "")) %>% 
+  mutate('median (IQR)' = paste(medianLength, " (", Q1, " - ", Q3, ")", sep = "")) %>% 
   select('Post-publication critique type', 'any n (%)', 'quantitative n (%)', 'median (IQR)')
 ```
 
@@ -716,8 +716,8 @@ prominentTimeAll <- dj_prominent %>%
     quantLimit = anyLimit - sum(ppc_time == "Qualitative"),
     quantPercent = round((quantLimit / n()) * 100),
     medianTime = round(median(quantTime, na.rm = TRUE)),
-    Q1 = quantile(quantTime, probs = 0.25, na.rm = TRUE),
-    Q3 = quantile(quantTime, probs = 0.75, na.rm = TRUE),
+    Q1 = round(quantile(quantTime, probs = 0.25, na.rm = TRUE)),
+    Q3 = round(quantile(quantTime, probs = 0.75, na.rm = TRUE)),
     IQR = round(Q3 - Q1) 
  ) 
 
@@ -726,7 +726,7 @@ prominentTimeAll_1 <- prominentTimeAll %>%
   mutate('Post-publication critique type' = "All types") %>%
   mutate('any n (%)' = paste(anyLimit, " (", anyPercent, ")", sep = "")) %>%
   mutate('quantitative n (%)' = paste(quantLimit, " (", quantPercent, ")", sep = "")) %>%
-  mutate('median (IQR)' = paste(medianTime, " (", IQR, ")", sep = "")) %>%
+  mutate('median (IQR)' = paste(medianTime, " (", Q1, " - ", Q3, ")", sep = "")) %>%
   select('Post-publication critique type', 'any n (%)', 'quantitative n (%)', 'median (IQR)')
 ```
 
@@ -746,8 +746,8 @@ prominentTimeType <- dj_prominent %>%
     quantLimit = anyLimit - sum(ppc_time == "Qualitative"),
     quantPercent = round((quantLimit / n()) * 100),
     medianTime = round(median(quantTime, na.rm = TRUE)),
-    Q1 = quantile(quantTime, probs = 0.25, na.rm = TRUE),
-    Q3 = quantile(quantTime, probs = 0.75, na.rm = TRUE),
+    Q1 = round(quantile(quantTime, probs = 0.25, na.rm = TRUE)),
+    Q3 = round(quantile(quantTime, probs = 0.75, na.rm = TRUE)),
     IQR = round(Q3 - Q1)
  ) %>%
   ungroup()
@@ -757,7 +757,7 @@ prominentTimeType_1 <- prominentTimeType %>%
   mutate('Post-publication critique type' = ppc_name) %>%
   mutate('any n (%)' = paste(anyLimit, " (", anyPercent, ")", sep = "")) %>%
   mutate('quantitative n (%)' = paste(quantLimit, " (", quantPercent, ")", sep = "")) %>%
-  mutate('median (IQR)' = paste(medianTime, " (", IQR, ")", sep = "")) %>%
+  mutate('median (IQR)' = paste(medianTime, " (", Q1, " - ", Q3, ")", sep = "")) %>%
   select('Post-publication critique type', 'any n (%)', 'quantitative n (%)', 'median (IQR)')
 ```
 
@@ -785,8 +785,8 @@ prominentRefAll <- dj_prominent %>%
     quantLimit = anyLimit - sum(ppc_ref == "Qualitative"),
     quantPercent = round((quantLimit / n()) * 100),
     medianRef = median(quantRef, na.rm = TRUE),
-    Q1 = quantile(quantRef, probs = 0.25, na.rm = TRUE),
-    Q3 = quantile(quantRef, probs = 0.75, na.rm = TRUE),
+    Q1 = round(quantile(quantRef, probs = 0.25, na.rm = TRUE)),
+    Q3 = round(quantile(quantRef, probs = 0.75, na.rm = TRUE)),
     IQR = round(Q3 - Q1)
  ) 
 
@@ -795,7 +795,7 @@ prominentRefAll_1 <- prominentRefAll %>%
   mutate('Post-publication critique type' = "All types") %>%
   mutate('any n (%)' = paste(anyLimit, " (", anyPercent, ")", sep = "")) %>%
   mutate('quantitative n (%)' = paste(quantLimit, " (", quantPercent, ")", sep = "")) %>%
-  mutate('median (IQR)' = paste(medianRef, " (", IQR, ")", sep = "")) %>%
+  mutate('median (IQR)' = paste(medianRef, " (", Q1, " - ", Q3, ")", sep = "")) %>%
   select('Post-publication critique type', 'any n (%)', 'quantitative n (%)', 'median (IQR)')
 ```
 
@@ -815,8 +815,8 @@ prominentRefType <- dj_prominent %>%
     quantLimit = anyLimit - sum(ppc_ref == "Qualitative"),
     quantPercent = round((quantLimit / n()) * 100),
     medianRef = median(quantRef, na.rm = TRUE),
-    Q1 = quantile(quantRef, probs = 0.25, na.rm = TRUE),
-    Q3 = quantile(quantRef, probs = 0.75, na.rm = TRUE),
+    Q1 = round(quantile(quantRef, probs = 0.25, na.rm = TRUE)),
+    Q3 = round(quantile(quantRef, probs = 0.75, na.rm = TRUE)),
     IQR = round(Q3 - Q1)
  ) %>%
   ungroup()
@@ -826,7 +826,7 @@ prominentRefType_1 <- prominentRefType %>%
   mutate('Post-publication critique type' = ppc_name) %>%
   mutate('any n (%)' = paste(anyLimit, " (", anyPercent, ")", sep = "")) %>%
   mutate('quantitative n (%)' = paste(quantLimit, " (", quantPercent, ")", sep = "")) %>%
-  mutate('median (IQR)' = paste(medianRef, " (", IQR, ")", sep = "")) %>%
+  mutate('median (IQR)' = paste(medianRef, " (", Q1, " - ", Q3, ")", sep = "")) %>%
   select('Post-publication critique type', 'any n (%)', 'quantitative n (%)', 'median (IQR)')
 ```
 
@@ -1060,3 +1060,76 @@ ci_promIinstance_UL
 ```
 
 \end
+
+## Journal Policy Figures for Conference Presentation
+
+```{r}
+dj_prominent %>% 
+  filter(ppc_type == "A") %>% 
+  mutate(has_ppc = case_when(
+    has_ppc == "NO EXPLICIT" ~ "NO",
+    has_ppc == "NO IMPLICIT" ~ "NO",
+    TRUE ~ has_ppc
+  )) %>% 
+  ggplot(aes(x = has_ppc, fill = has_ppc)) +
+  geom_bar(alpha = 0.7,
+           colour = "black",
+           width = 0.9,
+           show.legend = F
+           ) +
+  theme(aspect.ratio = 2/1) +
+  labs(title = "Prominent Journals", x = "", y ="Number of Journals (N = 100)") +
+  scale_fill_brewer(palette = "Paired") +
+  scale_y_continuous(limits = c(0, 100)) +
+  theme(
+    axis.text.x = element_text(size = 14),  
+    axis.text.y = element_text(size = 14)
+  )
+
+ggsave("prom_plot.png", plot = last_plot())
+```
+
+```{r}
+# Calculate Wilson confidence intervals
+dj_random_sum <- dj_random %>% 
+  filter(ppc_type == "A") %>% 
+  mutate(has_ppc = case_when(
+    has_ppc == "NO EXPLICIT" ~ "NO",
+    has_ppc == "NO IMPLICIT" ~ "NO",
+    TRUE ~ has_ppc)
+  ) %>% 
+  group_by(has_ppc) %>% 
+   summarise(count = n()) %>% 
+  mutate(
+    LL = case_when(
+      has_ppc == "YES" ~ 16,
+      has_ppc == "NO" ~ 68
+    ),
+    UL = case_when(
+      has_ppc == "YES" ~ 32,
+      has_ppc == "NO" ~ 84
+    )
+  )
+
+# Plot with error bars
+dj_random_sum %>% 
+  ggplot(aes(x = has_ppc, y = count, fill = has_ppc)) +
+  geom_bar(stat = "identity", 
+           alpha = 0.7, 
+           colour = "black",
+           width = 0.9,
+           show.legend = F
+           ) +
+   theme(aspect.ratio = 2/1) +
+  geom_errorbar(aes(ymin = LL, ymax = UL), width = 0.2) +
+  labs(title = "Randomly Selected Journals", x = "", y = "Number of Journals  (N = 100)") +
+  scale_fill_brewer(palette = "Greens") +
+  scale_y_continuous(limits = c(0, 100)) +
+  theme(
+    axis.text.x = element_text(size = 14),  
+    axis.text.y = element_text(size = 14)
+  ) 
+
+ggsave("random_plot.png", plot = last_plot())
+```
+
