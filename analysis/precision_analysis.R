@@ -38,7 +38,7 @@ calc_ci_width <- function(expectedProportion,sampleSize,confidenceLevel=.95,popu
       ' and a sample size of ',sampleSize,' is ', round(CI_width,3)))
   }
   
-  ci_object <- list(CI_width = CI_width, target_sample_size = sampleSize)
+  ci_object <- list(ci_width = CI_width, target_sample_size = sampleSize)
   
   return(ci_object)
 }
@@ -57,10 +57,10 @@ precisionCurve <- function(expectedProportion,sampleSize,confidenceLevel=.95,pop
       populationSize = populationSize,
       report = F # don't print a report
     )
-    ci_width_vector <- c(ci_width_vector, ci_object$CI_width) # append new ci_width to ci_width vector
+    ci_width_vector <- c(ci_width_vector, ci_object$ci_width) # append new ci_width to ci_width vector
   }
   
-  ci_vector <- ci_vector[!is.na(ci_vector)] # remove the NA value created when ci_width_vector was pre-loaded
+  ci_width_vector <- ci_width_vector[!is.na(ci_width_vector)] # remove the NA value created when ci_width_vector was pre-loaded
   df <- data.frame(sampleSize = sample_size_vector,precision = ci_width_vector)
   
   # build plot
@@ -85,7 +85,6 @@ ci_object1 <- calc_ci_width(
   populationSize = 750, # If population size is known, we can apply a finite population correction, otherwise use Inf
   confidenceLevel = .95) # specify the level of the confidence interval
 
-
 # Lets get a second ci width for a different target sample size (so we can display both on a precision curve)
 ci_object2 <- calc_ci_width(
   expectedProportion = .67, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
@@ -106,9 +105,8 @@ precisionCurve(expectedProportion =.67, # Specify the anticipated proportion. Us
   annotate("segment", x = 0, xend = ci_object1$target_sample_size, y = ci_object1$ci_width, yend = ci_object1$ci_width, colour = "purple", size=1, alpha=0.6) +
   annotate("label", x = 7, y = ci_object1$ci_width, colour = "purple", size=3, alpha=1, label = round(ci_object1$ci_width,3)) +
   annotate("label", x = ci_object1$target_sample_size, y = 0.02, colour = "purple", size=3, alpha=1, label = ci_object1$target_sample_size) + 
-  
   annotate("segment", x = ci_object2$target_sample_size, xend = ci_object2$target_sample_size, y = 0, yend = ci_object2$ci_width, colour = "green", size=1, alpha=0.6) +
-  annotate("segment", x = 0, xend =  ci_object2$target_sample_size, y = ci_object2$ci_wdith, yend = ci_object2$ci_width, colour = "green", size=1, alpha=0.6) +
+  annotate("segment", x = 0, xend = ci_object2$target_sample_size, y = ci_object2$ci_width, yend = ci_object2$ci_width, colour = "green", size=1, alpha=0.6) +
   annotate("label", x = 7, y = ci_object2$ci_width, colour = "green", size=3, alpha=1, label = round(ci_object2$ci_width,3)) +
   annotate("label", x = ci_object2$target_sample_size, y = 0.02, colour = "green", size=3, alpha=1, label = ci_object2$target_sample_size) 
 
@@ -121,14 +119,12 @@ ci_object1 <- calc_ci_width(
   populationSize = 61735, # If population size is known, we can apply a finite population correction, otherwise use Inf
   confidenceLevel = .95) # specify the level of the confidence interval
 
-
 # Lets get a second ci width for a different target sample size (so we can display both on a precision curve)
 ci_object2 <- calc_ci_width(
   expectedProportion = .17, # Specify the anticipated proportion. Use 0.5 for the most conservative sample size estimate (see Gelman & Hill, 2006, p. 442).
   sampleSize = 50, # Specify the target sample size
   populationSize = 61735, # If population size is known, we can apply a finite population correction, otherwise use Inf
   confidenceLevel = .95) # specify the level of the confidence interval
-
 
 # Now plot a precision curve showing precision (confidence interval width) as a function of sample size.
 # We'll annotate the plot with the parameters above
